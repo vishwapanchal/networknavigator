@@ -6,6 +6,7 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./node_modules/reactflow/dist/**/*.js", // Add ReactFlow
   ],
   theme: {
   	extend: {
@@ -90,5 +91,8 @@ export default {
   		}
   	}
   },
+   safelist: [ // Add safelist for dynamically generated ReactFlow classes if needed
+     // Example: 'react-flow__node-custom', etc.
+   ],
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
