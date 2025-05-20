@@ -85,7 +85,7 @@ const initialEdges: Edge<EdgeData>[] = exampleScenarios[0].data.edges.map(e => (
     ...e,
     type: e.type || 'default',
     markerEnd: { type: MarkerType.ArrowClosed },
-    style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }, // Default style for initial load
+    style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }, 
     animated: false,
 }));
 
@@ -103,7 +103,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [simulationResults, setSimulationResults] = useState<SimulationResult[] | null>(null);
   const { toast } = useToast();
 
-   // Update source/target if nodes change
   useEffect(() => {
      const nodeIds = nodes.map(n => n.id);
      let newSourceNode = simulationParams.sourceNode;
@@ -120,18 +119,18 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (!newSourceNode) newSourceNode = nodeIds[0];
         if (!newTargetNode) newTargetNode = nodeIds.length > 1 ? nodeIds[nodeIds.length-1] : nodeIds[0];
 
-
         if (newSourceNode === newTargetNode && nodeIds.length > 1) {
             const alternativeTarget = nodeIds.find(id => id !== newSourceNode);
             if (alternativeTarget) {
                 newTargetNode = alternativeTarget;
             }
+        } else if (nodeIds.length === 1) {
+            newTargetNode = newSourceNode; // if only one node, source and target are same
         }
     } else {
         newSourceNode = null;
         newTargetNode = null;
     }
-
 
      if (newSourceNode !== simulationParams.sourceNode || newTargetNode !== simulationParams.targetNode) {
         setSimulationParams(prev => ({ 
@@ -141,7 +140,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }));
      }
 
-  }, [nodes, simulationParams.sourceNode, simulationParams.targetNode, setSimulationParams]);
+  }, [nodes, simulationParams.sourceNode, simulationParams.targetNode]);
 
 
   const updateNodeData = useCallback((nodeId: string, data: Partial<NodeData>) => {
@@ -173,7 +172,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSimulationResults(null);
     setSimulationParams(prev => ({ ...prev, sourceNode: null, targetNode: null }));
     toast({ title: 'Network Cleared', description: 'Canvas has been reset.' });
-  }, [setNodes, setEdges, toast, setSimulationParams]);
+  }, [setNodes, setEdges, toast]);
 
   const loadExample = useCallback((data: { nodes: Node<NodeData>[], edges: Edge<EdgeData>[] }) => {
      const typedNodes = data.nodes.map(n => ({ ...n, type: 'custom' }));
@@ -245,31 +244,75 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         : [simulationParams.algorithm];
 
     const results: SimulationResult[] = algorithmsToRun.map(algo => {
-        let currentMockPath: string[] = [simulationParams.sourceNode!, simulationParams.targetNode!];
+        let currentMockPath: string[] = [];
         const sourceId = simulationParams.sourceNode!;
         const targetId = simulationParams.targetNode!;
+        const { weights } = simulationParams;
 
-        const directEdgeExists = edges.some(edge =>
-            (edge.source === sourceId && edge.target === targetId) ||
-            (edge.source === targetId && edge.target === sourceId)
-        );
+        if (algo === 'adaptive') {
+            let bestAdaptivePath: string[] = [sourceId, targetId]; // Default to direct if no better path
+            let minCost = Infinity;
 
-        if (!directEdgeExists) {
+            const directEdge = edges.find(edge =>
+                (edge.source === sourceId && edge.target === targetId) ||
+                (edge.source === targetId && edge.target === sourceId)
+            );
+
+            // Evaluate 2-hop paths
             const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
-            let foundTwoHopPath = false;
             for (const intermediateNode of intermediateNodeCandidates) {
-                const edge1Exists = edges.some(edge =>
-                    (edge.source === sourceId && edge.target === intermediateNode.id) ||
-                    (edge.source === intermediateNode.id && edge.target === sourceId)
+                const edge1 = edges.find(e =>
+                    (e.source === sourceId && e.target === intermediateNode.id) ||
+                    (e.source === intermediateNode.id && e.target === sourceId)
                 );
-                const edge2Exists = edges.some(edge =>
-                    (edge.source === intermediateNode.id && edge.target === targetId) ||
-                    (edge.source === targetId && edge.target === intermediateNode.id)
+                const edge2 = edges.find(e =>
+                    (e.source === intermediateNode.id && e.target === targetId) ||
+                    (e.source === targetId && e.target === intermediateNode.id)
                 );
-                if (edge1Exists && edge2Exists) {
-                    currentMockPath = [sourceId, intermediateNode.id, targetId];
-                    foundTwoHopPath = true;
-                    break; 
+
+                if (edge1?.data && edge2?.data && intermediateNode?.data) {
+                    const latencyCost = weights.alpha * (edge1.data.latency + edge2.data.latency);
+                    const batteryCost = weights.beta * (100 - intermediateNode.data.battery); // Higher battery is better, so (100-bat) is cost
+                    const queueCost = weights.gamma * intermediateNode.data.queueSize;
+                    const totalCost = latencyCost + batteryCost + queueCost;
+
+                    if (totalCost < minCost) {
+                        minCost = totalCost;
+                        bestAdaptivePath = [sourceId, intermediateNode.id, targetId];
+                    }
+                }
+            }
+            
+            if (minCost !== Infinity) { // A 2-hop path was found and is better or the only option
+                currentMockPath = bestAdaptivePath;
+            } else if (directEdge) { // No suitable 2-hop path, but a direct edge exists
+                currentMockPath = [sourceId, targetId];
+            } else { // No 2-hop and no direct edge
+                currentMockPath = [sourceId, targetId]; // Path will not highlight if no edge
+            }
+
+        } else { // For Dijkstra, Bellman-Ford (simple mock path)
+            currentMockPath = [sourceId, targetId]; 
+            const directEdgeExists = edges.some(edge =>
+                (edge.source === sourceId && edge.target === targetId) ||
+                (edge.source === targetId && edge.target === sourceId)
+            );
+
+            if (!directEdgeExists) {
+                const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
+                for (const intermediateNode of intermediateNodeCandidates) {
+                    const edge1Exists = edges.some(edge =>
+                        (edge.source === sourceId && edge.target === intermediateNode.id) ||
+                        (edge.source === intermediateNode.id && edge.target === sourceId)
+                    );
+                    const edge2Exists = edges.some(edge =>
+                        (edge.source === intermediateNode.id && edge.target === targetId) ||
+                        (edge.source === targetId && edge.target === intermediateNode.id)
+                    );
+                    if (edge1Exists && edge2Exists) {
+                        currentMockPath = [sourceId, intermediateNode.id, targetId];
+                        break; 
+                    }
                 }
             }
         }
@@ -285,14 +328,16 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         } else if (algo === 'bellman-ford') {
             latencyFactor = 1.2; 
             energyFactor = 1.0;
-        } else { 
-             latencyFactor = (0.9 + Math.random() * 0.3) * (1 - simulationParams.weights.alpha + 0.5) ; 
-             energyFactor = (0.9 + Math.random() * 0.2) * (1 - simulationParams.weights.beta + 0.5); 
-             deliveryFactor = (1.0 + Math.random() * 0.1) * (1 - simulationParams.weights.gamma + 0.5);
-             lifetimeFactor = 1.1; 
+        } else if (algo === 'adaptive') { 
+             // Metrics for adaptive path should ideally be derived from the chosen path's properties
+             // For now, keep randomized factors but influenced by weights
+             latencyFactor = (0.9 + Math.random() * 0.3) * (1 - weights.alpha * 0.5); 
+             energyFactor = (0.9 + Math.random() * 0.2) * (1 + weights.beta * 0.3); // Higher beta weight might reduce energy consumption slightly in a real scenario
+             deliveryFactor = (0.95 + Math.random() * 0.05) * (1 - weights.gamma * 0.2); // Higher gamma weight might improve delivery by avoiding congested queues
+             lifetimeFactor = 1.0 + weights.beta * 0.2; // Higher battery focus might increase lifetime
         }
         
-        const pathLength = currentMockPath.length -1; 
+        const pathLength = Math.max(1, currentMockPath.length -1); 
         const baseEnergyPerHop = 10;
         const baseLatencyPerHop = 15;
 
@@ -303,37 +348,42 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 energyConsumption: (baseEnergyPerHop * pathLength + Math.random() * 20) * energyFactor,
                 averageLatency: (baseLatencyPerHop * pathLength + Math.random() * 10) * latencyFactor,
                 deliveryRatio: Math.min(1, (0.85 + Math.random() * 0.15) * deliveryFactor),
-                networkLifetime: Math.floor((300 + Math.random() * 100) * lifetimeFactor / (Math.max(1,pathLength))),
+                networkLifetime: Math.floor((300 + Math.random() * 100) * lifetimeFactor / pathLength),
             },
         };
     });
 
     setSimulationResults(results);
 
-    const firstResultPath = results.find(r => r.algorithm === simulationParams.algorithm)?.path || (results.length > 0 ? results[0].path : []);
-    const pathEdges = new Set<string>();
-     for (let i = 0; i < firstResultPath.length - 1; i++) {
-        const source = firstResultPath[i];
-        const target = firstResultPath[i+1];
-        const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source)); 
-        if (edge) {
-            pathEdges.add(edge.id);
+    const chosenAlgorithmForDisplay = simulationParams.algorithm === 'compare' ? 'adaptive' : simulationParams.algorithm;
+    const resultForDisplay = results.find(r => r.algorithm === chosenAlgorithmForDisplay) || results[0];
+    const pathEdgesToHighlight = new Set<string>();
+
+     if (resultForDisplay && resultForDisplay.path.length > 1) {
+        for (let i = 0; i < resultForDisplay.path.length - 1; i++) {
+            const source = resultForDisplay.path[i];
+            const target = resultForDisplay.path[i+1];
+            const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source)); 
+            if (edge) {
+                pathEdgesToHighlight.add(edge.id);
+            }
         }
      }
+
 
     setEdges(eds => eds.map(e => ({
         ...e,
         style: {
-             stroke: pathEdges.has(e.id) ? 'hsl(var(--accent))' : 'hsl(var(--primary))',
-             strokeWidth: pathEdges.has(e.id) ? 3 : 2,
+             stroke: pathEdgesToHighlight.has(e.id) ? 'hsl(var(--accent))' : 'hsl(var(--primary))',
+             strokeWidth: pathEdgesToHighlight.has(e.id) ? 3 : 2,
         },
-        animated: pathEdges.has(e.id),
+        animated: pathEdgesToHighlight.has(e.id),
     })));
 
 
     toast({
       title: 'Simulation Complete',
-      description: `Results generated for ${simulationParams.algorithm === 'compare' ? 'all algorithms' : simulationParams.algorithm}.`,
+      description: `Results generated for ${simulationParams.algorithm === 'compare' ? 'all algorithms' : simulationParams.algorithm}. Displaying path for ${chosenAlgorithmForDisplay}.`,
     });
   }, [nodes, edges, simulationParams, setEdges, toast]);
 
