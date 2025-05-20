@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
@@ -80,7 +81,12 @@ const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 // Initial state
 const initialNodes: Node<NodeData>[] = exampleScenarios[0].data.nodes;
-const initialEdges: Edge<EdgeData>[] = exampleScenarios[0].data.edges;
+const initialEdges: Edge<EdgeData>[] = exampleScenarios[0].data.edges.map(e => ({
+    ...e,
+    style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }, // Default style for initial load
+    animated: false,
+}));
+
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
@@ -98,19 +104,42 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
    // Update source/target if nodes change
   useEffect(() => {
      const nodeIds = nodes.map(n => n.id);
-     if (simulationParams.sourceNode && !nodeIds.includes(simulationParams.sourceNode)) {
-       setSimulationParams(prev => ({ ...prev, sourceNode: nodeIds[0] || null }));
+     let newSourceNode = simulationParams.sourceNode;
+     let newTargetNode = simulationParams.targetNode;
+
+     if (newSourceNode && !nodeIds.includes(newSourceNode)) {
+       newSourceNode = nodeIds[0] || null;
      }
-     if (simulationParams.targetNode && !nodeIds.includes(simulationParams.targetNode)) {
-       setSimulationParams(prev => ({ ...prev, targetNode: nodeIds[nodeIds.length - 1] || null }));
+     if (newTargetNode && !nodeIds.includes(newTargetNode)) {
+       newTargetNode = nodeIds[nodeIds.length - 1] || null;
      }
-      // Ensure source and target are different if possible
-      if (nodes.length > 1 && simulationParams.sourceNode === simulationParams.targetNode) {
-         const newTarget = nodeIds.find(id => id !== simulationParams.sourceNode);
-         if (newTarget) {
-             setSimulationParams(prev => ({ ...prev, targetNode: newTarget }));
-         }
-      }
+     
+     // Ensure source and target are different if possible, and both exist
+    if (nodeIds.length > 0) {
+        if (!newSourceNode) newSourceNode = nodeIds[0];
+        if (!newTargetNode && nodeIds.length > 1) newTargetNode = nodeIds[1];
+        else if (!newTargetNode) newTargetNode = nodeIds[0];
+
+
+        if (newSourceNode === newTargetNode && nodeIds.length > 1) {
+            const alternativeTarget = nodeIds.find(id => id !== newSourceNode);
+            if (alternativeTarget) {
+                newTargetNode = alternativeTarget;
+            }
+        }
+    } else {
+        newSourceNode = null;
+        newTargetNode = null;
+    }
+
+
+     if (newSourceNode !== simulationParams.sourceNode || newTargetNode !== simulationParams.targetNode) {
+        setSimulationParams(prev => ({ 
+            ...prev, 
+            sourceNode: newSourceNode, 
+            targetNode: newTargetNode 
+        }));
+     }
 
   }, [nodes, simulationParams.sourceNode, simulationParams.targetNode]);
 
@@ -147,28 +176,34 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [setNodes, setEdges, toast]);
 
   const loadExample = useCallback((data: { nodes: Node<NodeData>[], edges: Edge<EdgeData>[] }) => {
-     // Ensure nodes have the correct type and edges have markers
      const typedNodes = data.nodes.map(n => ({ ...n, type: 'custom' }));
-     const markedEdges = data.edges.map(e => ({ ...e, markerEnd: { type: MarkerType.ArrowClosed } }));
+     // Add default styles and ensure type for all edges when loading an example
+     const styledMarkedEdges = data.edges.map(e => ({
+         ...e,
+         type: e.type || 'default', // Ensure type is set
+         markerEnd: { type: MarkerType.ArrowClosed },
+         style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }, // Default style
+         animated: false, // Ensure not animated by default
+     }));
 
     setNodes(typedNodes);
-    setEdges(markedEdges);
+    setEdges(styledMarkedEdges); // Use edges with default styles
     setSelectedElement(null);
-    setSimulationResults(null);
+    setSimulationResults(null); // Clear previous results
 
-     // Set default source/target for the loaded example
+     // Set initial source/target; useEffect will refine if needed
      if (typedNodes.length > 0) {
          setSimulationParams(prev => ({
              ...prev,
              sourceNode: typedNodes[0].id,
-             targetNode: typedNodes.length > 1 ? typedNodes[typedNodes.length - 1].id : typedNodes[0].id,
+             targetNode: typedNodes.length > 1 ? typedNodes[typedNodes.length -1].id : typedNodes[0].id,
          }));
      } else {
           setSimulationParams(prev => ({ ...prev, sourceNode: null, targetNode: null }));
      }
 
     toast({ title: 'Example Loaded', description: 'Network topology updated.' });
-  }, [setNodes, setEdges, toast, setSimulationParams]);
+  }, [setNodes, setEdges, setSimulationParams, toast]);
 
 
   const deleteSelectedElement = useCallback(() => {
@@ -208,70 +243,65 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }
 
-
-    // Placeholder for actual simulation logic
-    // In a real app, this would likely involve API calls to a backend (e.g., Python with NetworkX)
     console.log('Running simulation with params:', simulationParams);
     console.log('Current network:', { nodes, edges });
 
-    // --- Mock Simulation Results ---
     const algorithmsToRun = simulationParams.algorithm === 'compare'
         ? ['dijkstra', 'bellman-ford', 'adaptive']
         : [simulationParams.algorithm];
 
     const results: SimulationResult[] = algorithmsToRun.map(algo => {
-        // Mock path finding (simple shortest path based on edge count for demo)
-         const mockPath = [simulationParams.sourceNode!, simulationParams.targetNode!]; // Simplified
+         const mockPath = [simulationParams.sourceNode!, simulationParams.targetNode!]; 
          if (nodes.length > 2) {
-            // Add a random intermediate node if available
             const intermediateNodes = nodes.filter(n => n.id !== simulationParams.sourceNode && n.id !== simulationParams.targetNode);
             if (intermediateNodes.length > 0) {
                 mockPath.splice(1, 0, intermediateNodes[Math.floor(Math.random() * intermediateNodes.length)].id);
             }
          }
 
-
-        // Mock metrics based loosely on algorithm type
         let energyFactor = 1;
         let latencyFactor = 1;
         let deliveryFactor = 1;
         let lifetimeFactor = 1;
 
         if (algo === 'dijkstra') {
-            latencyFactor = 0.8; // Often fast
+            latencyFactor = 0.8; 
             energyFactor = 1.1;
         } else if (algo === 'bellman-ford') {
-            latencyFactor = 1.2; // Can be slower
+            latencyFactor = 1.2; 
             energyFactor = 1.0;
-        } else { // adaptive
-             latencyFactor = 0.9 + Math.random() * 0.3; // Variable based on weights
-             energyFactor = 0.9 + Math.random() * 0.2; // Tries to optimize
-             deliveryFactor = 1.05; // More robust?
-             lifetimeFactor = 1.1; // Aims for longevity?
+        } else { 
+             latencyFactor = (0.9 + Math.random() * 0.3) * (1 - simulationParams.weights.alpha + 0.5) ; 
+             energyFactor = (0.9 + Math.random() * 0.2) * (1 - simulationParams.weights.beta + 0.5); 
+             deliveryFactor = (1.0 + Math.random() * 0.1) * (1 - simulationParams.weights.gamma + 0.5);
+             lifetimeFactor = 1.1; 
         }
+        
+        // Simulate metrics based on path length and factors
+        const pathLength = mockPath.length -1; // number of edges in path
+        const baseEnergyPerHop = 10;
+        const baseLatencyPerHop = 15;
 
         return {
             algorithm: algo,
             path: mockPath,
             metrics: {
-                energyConsumption: (100 + Math.random() * 50) * energyFactor,
-                averageLatency: (20 + Math.random() * 30) * latencyFactor,
-                deliveryRatio: Math.min(1, (0.9 + Math.random() * 0.1) * deliveryFactor),
-                networkLifetime: Math.floor((500 + Math.random() * 200) * lifetimeFactor),
+                energyConsumption: (baseEnergyPerHop * pathLength + Math.random() * 20) * energyFactor,
+                averageLatency: (baseLatencyPerHop * pathLength + Math.random() * 10) * latencyFactor,
+                deliveryRatio: Math.min(1, (0.85 + Math.random() * 0.15) * deliveryFactor),
+                networkLifetime: Math.floor((300 + Math.random() * 100) * lifetimeFactor / (pathLength || 1)),
             },
         };
     });
-    // --- End Mock Simulation Results ---
 
     setSimulationResults(results);
 
-    // Highlight the path for the first result (or selected algorithm if not comparing)
-    const firstResultPath = results[0].path;
+    const firstResultPath = results.find(r => r.algorithm === simulationParams.algorithm)?.path || results[0].path;
     const pathEdges = new Set<string>();
      for (let i = 0; i < firstResultPath.length - 1; i++) {
         const source = firstResultPath[i];
         const target = firstResultPath[i+1];
-        const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source)); // Find edge regardless of direction for highlighting
+        const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source)); 
         if (edge) {
             pathEdges.add(edge.id);
         }
@@ -283,7 +313,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
              stroke: pathEdges.has(e.id) ? 'hsl(var(--accent))' : 'hsl(var(--primary))',
              strokeWidth: pathEdges.has(e.id) ? 3 : 2,
         },
-        animated: pathEdges.has(e.id), // Optional: Animate the path edges
+        animated: pathEdges.has(e.id),
     })));
 
 
@@ -329,3 +359,4 @@ export const useNetwork = (): NetworkContextType => {
   }
   return context;
 };
+
