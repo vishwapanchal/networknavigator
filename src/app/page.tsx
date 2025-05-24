@@ -17,24 +17,28 @@ const Home: NextPage = () => {
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
         {/* Title, Credits, and Tagline Area */}
         <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm">
-          {/* Use the TypingGlitchTagline component for the main title */}
+          {/* Title with glitch, no typing */}
           <TypingGlitchTagline
             text={titleText}
             className="text-xl md:text-2xl font-bold text-glow-primary block" // Added block for h1-like behavior
-            typingSpeed={50} // Adjusted typing speed for title
-            glitchIntervalMin={5000}
-            glitchIntervalMax={10000}
-            glitchDuration={220}
+            typingEnabled={false}   // Typing disabled for title
+            glitchEnabled={true}    // Glitch enabled for title
+            typingSpeed={50}        // Speed doesn't matter if typingEnabled is false
+            glitchIntervalMin={2000} // More frequent glitch for title
+            glitchIntervalMax={5000}
+            glitchDuration={250}     // Slightly longer glitch duration for title
           />
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
-          {/* Revert tagline to a static p element with appropriate styling */}
-          <p 
+          {/* Tagline with typing, no glitch */}
+          <TypingGlitchTagline
+            text={taglineText}
             className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em]"
-          >
-            {taglineText}
-          </p>
+            typingEnabled={true}    // Typing enabled for tagline
+            glitchEnabled={false}   // Glitch disabled for tagline
+            typingSpeed={70}        // Standard typing speed for tagline
+          />
         </header>
 
         {/* Main Content Area */}
