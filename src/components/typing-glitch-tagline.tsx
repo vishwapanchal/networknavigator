@@ -18,11 +18,11 @@ interface TypingGlitchTaglineProps {
 export const TypingGlitchTagline: React.FC<TypingGlitchTaglineProps> = ({
   text,
   className,
-  typingSpeed = 70, // Adjusted speed
+  typingSpeed = 70,
   glitchEnabled = true,
-  glitchIntervalMin = 4000, // Min ms between glitches - Increased from 2500
-  glitchIntervalMax = 8000, // Max ms between glitches - Increased from 6000
-  glitchDuration = 180,    // How long a single glitch effect lasts
+  glitchIntervalMin = 4000, 
+  glitchIntervalMax = 8000, 
+  glitchDuration = 180,    
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
@@ -81,8 +81,8 @@ export const TypingGlitchTagline: React.FC<TypingGlitchTaglineProps> = ({
   return (
     <div
       className={cn(
-        'font-semibold text-glow-accent relative', // Keep existing glow, it will be subtle
-        isGlitching ? 'glitching' : '',      // Class to trigger glitch styling on children
+        'font-semibold relative', // Removed 'text-glow-accent' - will be controlled by passed className
+        isGlitching ? 'glitching' : '',
         className
       )}
     >
