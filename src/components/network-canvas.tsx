@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useCallback, useRef } from 'react';
@@ -115,6 +116,7 @@ export function NetworkCanvas() {
         eds.map((e) => ({
           ...e,
           data: { ...e.data, isSelected: false },
+           style: { ...e.style, stroke: 'hsl(var(--primary))', strokeWidth: 2 }
         }))
       );
     },
@@ -128,7 +130,7 @@ export function NetworkCanvas() {
         eds.map((e) => ({
           ...e,
           data: { ...e.data, isSelected: e.id === edge.id },
-           style: { stroke: e.id === edge.id ? 'hsl(var(--accent))' : 'hsl(var(--primary))', strokeWidth: e.id === edge.id ? 3 : 2 }
+           style: { ...e.style, stroke: e.id === edge.id ? 'hsl(var(--accent))' : 'hsl(var(--primary))', strokeWidth: e.id === edge.id ? 3 : 2 }
         }))
       );
        setNodes((nds) =>
@@ -153,7 +155,7 @@ export function NetworkCanvas() {
         eds.map((e) => ({
           ...e,
           data: { ...e.data, isSelected: false },
-          style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+          style: { ...e.style, stroke: 'hsl(var(--primary))', strokeWidth: 2 }
         }))
       );
   }, [setSelectedElement, setNodes, setEdges]);
@@ -203,6 +205,7 @@ export function NetworkCanvas() {
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{ padding: 0.3 }} // Increased padding for a more "zoomed out" initial view
         className="bg-background"
       >
         <Controls />
