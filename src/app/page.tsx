@@ -5,18 +5,33 @@ import { NetworkCanvas } from '@/components/network-canvas';
 import { Sidebar } from '@/components/sidebar';
 import { PerformanceMetrics } from '@/components/performance-metrics';
 import { NetworkProvider } from '@/context/network-context';
-import { Toaster } from '@/components/ui/toaster';
 
 const Home: NextPage = () => {
   return (
     <NetworkProvider>
-      <div className="flex h-screen w-screen overflow-hidden bg-background">
-        <Sidebar />
-        <div className="flex flex-1 flex-col">
-          <NetworkCanvas />
-          <PerformanceMetrics />
+      <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
+        {/* Title, Credits, and Tagline Area */}
+        <header className="p-4 border-b text-center shadow-sm bg-card">
+          <h1 className="text-xl md:text-2xl font-bold text-primary">
+            Optimizing Data Flow in IoT Sensor Networks Using Graph Theory
+          </h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
+          </p>
+          <p className="text-sm md:text-md font-semibold text-accent mt-2">
+            Harnessing graph intelligence to power smarter, faster IoT networks
+          </p>
+        </header>
+
+        {/* Main Content Area */}
+        <div className="flex flex-1 overflow-hidden"> {/* This row contains Sidebar and the main canvas/metrics area */}
+          <Sidebar />
+          <div className="flex flex-1 flex-col overflow-hidden"> {/* This column contains Canvas and Metrics */}
+            <NetworkCanvas />
+            <PerformanceMetrics />
+          </div>
         </div>
-        <Toaster />
+        {/* Redundant Toaster removed, as it's present in RootLayout */}
       </div>
     </NetworkProvider>
   );
