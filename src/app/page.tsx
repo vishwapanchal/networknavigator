@@ -10,7 +10,7 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
-  const taglineText = "Harnessing graph intelligence to power smarter, faster IoT networks";
+  const taglineText = "Structuring the Invisible.";
 
   return (
     <NetworkProvider>
