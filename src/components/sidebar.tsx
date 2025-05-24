@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { useNetwork } from '@/context/network-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
 import {
   Select,
   SelectContent,
@@ -14,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from './ui/button';
-import { Save, Trash2, Type, BatteryCharging, ArrowRightLeft, Layers3, Zap, Clock } from 'lucide-react';
+import { Save, Trash2, Type, BatteryCharging, ArrowRightLeft, Layers3, Zap, Clock, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import type { Node, Edge } from 'reactflow';
@@ -29,6 +31,11 @@ export function Sidebar({}: SidebarProps) {
     simulationParams,
     setSimulationParams,
     deleteSelectedElement,
+    matrixSize,
+    setMatrixSize,
+    matrixInput,
+    setMatrixInput,
+    generateNetworkFromMatrix,
   } = useNetwork();
 
   const [localData, setLocalData] = useState<any>({});
@@ -282,14 +289,53 @@ export function Sidebar({}: SidebarProps) {
                          className="[&>span]:h-1 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3"
                     />
                  </div>
-                 {totalWeight.toFixed(2) !== '1.00' && (
+                 {Math.abs(totalWeight - 1) > 0.001 && (
                     <p className="text-xs text-destructive font-medium">Warning: Weights do not sum to 1.</p>
                  )}
               </div>
             ): null}
           </div>
+
+          <Separator className="my-6" />
+            <div className="space-y-4">
+              <h3 className="font-semibold text-md mb-2">Create from Adjacency Matrix</h3>
+              <div className="space-y-2">
+                <Label htmlFor="matrixSizeInput">Number of Nodes</Label>
+                <Input
+                  id="matrixSizeInput"
+                  type="number"
+                  value={matrixSize}
+                  onChange={(e) => setMatrixSize(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  min={1}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="matrixValueInput">Adjacency Matrix (0 or 1, comma-separated)</Label>
+                <Textarea
+                  id="matrixValueInput"
+                  placeholder={`Example for ${matrixSize} nodes (1 for edge, 0 for no edge):\n0,1,0\n0,0,1\n1,0,0`}
+                  value={matrixInput}
+                  onChange={(e) => setMatrixInput(e.target.value)}
+                  className="text-sm min-h-[100px]"
+                />
+                 <p className="text-xs text-muted-foreground">
+                  Each row represents a node. Values are comma-separated.
+                </p>
+              </div>
+              <Button
+                onClick={() => generateNetworkFromMatrix(matrixInput, matrixSize)}
+                size="sm"
+                className="w-full"
+              >
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                Generate Network from Matrix
+              </Button>
+            </div>
+
         </CardContent>
       </ScrollArea>
     </Card>
   );
 }
+
