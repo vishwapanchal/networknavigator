@@ -1,0 +1,63 @@
+.typing-cursor {
+  display: inline-block;
+  animation: blink 0.7s infinite;
+  margin-left: 2px;
+  color: hsl(var(--accent)); /* Use accent color for cursor */
+  /* Ensure cursor is not affected by glitch pseudo-elements */
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.tagline-text-content {
+  position: relative; /* Needed for pseudo-elements to be positioned correctly */
+  display: inline-block; /* Ensure pseudo-elements align with the text */
+}
+
+/* Glitch effect applies when .glitching is active on the parent div */
+.glitching .tagline-text-content::before,
+.glitching .tagline-text-content::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: hsl(var(--background)); /* Cover original text if needed */
+  overflow: hidden;
+  visibility: visible; /* Show when glitching */
+  text-shadow: none; /* Glitch fragments are sharp */
+}
+
+.glitching .tagline-text-content::before {
+  left: 1.5px;
+  color: hsl(var(--chart-1)); /* Neon Cyan */
+  animation: glitch-anim-1 0.1s infinite steps(2, jump-none) alternate;
+}
+
+.glitching .tagline-text-content::after {
+  left: -1.5px;
+  color: hsl(var(--chart-3)); /* Neon Green */
+  animation: glitch-anim-2 0.12s infinite steps(2, jump-none) alternate-reverse;
+}
+
+/* Keyframes for glitch effects: Short clips and displacements */
+@keyframes glitch-anim-1 {
+  0% { clip-path: inset(25% 0 60% 0); transform: translate(-1px, 1px) skewX(5deg); }
+  50% { clip-path: inset(70% 0 5% 0); transform: translate(1px, -1px) skewX(-3deg); }
+  100% { clip-path: inset(10% 0 85% 0); transform: translate(0px, 0px) skewX(0deg); }
+}
+
+@keyframes glitch-anim-2 {
+  0% { clip-path: inset(50% 0 15% 0); transform: translate(1px, -0.5px) skewX(-4deg); }
+  50% { clip-path: inset(5% 0 70% 0); transform: translate(-1px, 0.5px) skewX(6deg); }
+  100% { clip-path: inset(30% 0 40% 0); transform: translate(0px, 0px) skewX(0deg); }
+}
+
+/* The parent div for the tagline will have text-glow-accent. */
+/* The .tagline-text-content span will inherit this. */
+/* Pseudo-elements for glitch will NOT inherit text-shadow due to 'text-shadow: none'. */

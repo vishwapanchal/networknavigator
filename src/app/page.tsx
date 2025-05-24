@@ -5,8 +5,10 @@ import { NetworkCanvas } from '@/components/network-canvas';
 import { Sidebar } from '@/components/sidebar';
 import { PerformanceMetrics } from '@/components/performance-metrics';
 import { NetworkProvider } from '@/context/network-context';
+import { TypingGlitchTagline } from '@/components/typing-glitch-tagline'; // Import the new component
 
 const Home: NextPage = () => {
+  const taglineText = "Harnessing graph intelligence to power smarter, faster IoT networks";
   return (
     <NetworkProvider>
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
@@ -18,9 +20,11 @@ const Home: NextPage = () => {
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
-          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2">
-            Harnessing graph intelligence to power smarter, faster IoT networks
-          </p>
+          {/* Use the new TypingGlitchTagline component */}
+          <TypingGlitchTagline 
+            text={taglineText} 
+            className="text-sm md:text-md mt-2 min-h-[1.5em] md:min-h-[1.25em]" // Added min-h for layout stability
+          />
         </header>
 
         {/* Main Content Area */}
