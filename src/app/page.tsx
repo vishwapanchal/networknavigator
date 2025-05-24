@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { NextPage } from 'next';
@@ -21,8 +22,8 @@ const Home: NextPage = () => {
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
           {/* Use the new TypingGlitchTagline component */}
-          <TypingGlitchTagline 
-            text={taglineText} 
+          <TypingGlitchTagline
+            text={taglineText}
             className="text-sm md:text-md mt-2 min-h-[1.5em] md:min-h-[1.25em]" // Added min-h for layout stability
           />
         </header>
