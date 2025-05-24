@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { memo } from 'react';
@@ -5,6 +6,7 @@ import { Handle, Position, NodeProps } from 'reactflow';
 import { Card, CardContent } from '@/components/ui/card';
 import { BatteryMedium, Layers2, Router, Network, Server } from 'lucide-react';
 import type { NodeData } from '@/context/network-context';
+import { cn } from '@/lib/utils';
 
 const CustomNode = memo(({ data, isConnectable, selected }: NodeProps<NodeData>) => {
   const { label, battery, queueSize, role } = data;
@@ -22,17 +24,28 @@ const CustomNode = memo(({ data, isConnectable, selected }: NodeProps<NodeData>)
     }
   };
 
-  // Determine battery color class based on level
-   const getBatteryColorClass = (level: number) => {
+  const getBatteryColorClass = (level: number) => {
     if (level < 20) return 'text-battery-low';
     if (level < 50) return 'text-battery-medium';
     return 'text-battery-high';
-   }
+  };
+
+  const getRoleIndicatorStyle = (nodeRole: NodeData['role']) => {
+    switch (nodeRole) {
+      case 'sensor':
+        return 'bg-[hsl(var(--role-sensor-accent-hsl))]';
+      case 'router':
+        return 'bg-[hsl(var(--role-router-accent-hsl))]';
+      case 'gateway':
+        return 'bg-[hsl(var(--role-gateway-accent-hsl))]';
+      default:
+        return 'bg-muted'; // A fallback color
+    }
+  };
 
   return (
-    // Card component already picks up styling from globals.css via Tailwind config
-    // The explicit border and selected style is handled by react-flow__node classes in globals.css
-    <Card className={`w-36 transition-all duration-150 ease-in-out`}>
+    <Card className={cn('w-36 transition-all duration-150 ease-in-out overflow-hidden')}>
+      <div className={cn("h-1.5 w-full", getRoleIndicatorStyle(role))} /> {/* Role Indicator Bar */}
       <CardContent className="p-2 text-center">
          <div className="flex items-center justify-center mb-1 gap-1">
             {getIcon()}

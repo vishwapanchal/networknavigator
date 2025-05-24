@@ -19,6 +19,11 @@ body {
     --chart4-raw-hsl: 45, 100%, 55%;  /* Neon Yellow/Orange */
     --chart5-raw-hsl: 200, 100%, 70%; /* Bright Teal */
 
+    /* Role-specific accents */
+    --role-sensor-accent-hsl: 190, 90%, 60%; /* Bright Cyan-Blue */
+    --role-router-accent-hsl: 270, 90%, 65%; /* Vibrant Purple */
+    --role-gateway-accent-hsl: 40, 100%, 55%; /* Bright Orange-Yellow */
+
     /* Dark Mode Base */
     --background: 220 15% 10%; /* Deep Charcoal/Dark Desaturated Blue */
     --foreground: 210 15% 90%; /* Light, slightly cool pastel */
@@ -88,6 +93,11 @@ body {
     --chart3-raw-hsl: 120, 100%, 50%;
     --chart4-raw-hsl: 45, 100%, 55%;
     --chart5-raw-hsl: 200, 100%, 70%;
+
+    /* Role-specific accents */
+    --role-sensor-accent-hsl: 190, 90%, 60%;
+    --role-router-accent-hsl: 270, 90%, 65%;
+    --role-gateway-accent-hsl: 40, 100%, 55%;
 
     --background: 220 15% 10%;
     --foreground: 210 15% 90%;
@@ -176,7 +186,7 @@ body {
 
 /* ReactFlow specific styles */
 .react-flow__node {
-  @apply bg-card text-card-foreground rounded-md shadow-md text-center p-2;
+  @apply bg-card text-card-foreground rounded-md shadow-md text-center p-0; /* Adjusted padding to 0 for internal bar */
   border: 1px solid hsl(var(--accent)); /* Metallic border */
   box-shadow: 0 0 6px hsla(var(--accent-raw-hsl), 0.5), 0 0 10px hsla(var(--accent-raw-hsl), 0.3); /* Neon glow */
   min-width: 80px;
