@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -19,8 +20,8 @@ export const TypingGlitchTagline: React.FC<TypingGlitchTaglineProps> = ({
   className,
   typingSpeed = 70, // Adjusted speed
   glitchEnabled = true,
-  glitchIntervalMin = 2500, // Min ms between glitches
-  glitchIntervalMax = 6000, // Max ms between glitches
+  glitchIntervalMin = 4000, // Min ms between glitches - Increased from 2500
+  glitchIntervalMax = 8000, // Max ms between glitches - Increased from 6000
   glitchDuration = 180,    // How long a single glitch effect lasts
 }) => {
   const [displayedText, setDisplayedText] = useState('');
@@ -92,3 +93,4 @@ export const TypingGlitchTagline: React.FC<TypingGlitchTaglineProps> = ({
     </div>
   );
 };
+
