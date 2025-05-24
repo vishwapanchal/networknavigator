@@ -3,7 +3,6 @@
 
 import React, { useCallback, useRef } from 'react';
 import ReactFlow, {
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -209,7 +208,7 @@ export function NetworkCanvas() {
         className="bg-background"
       >
         <Controls />
-        <MiniMap nodeStrokeWidth={3} zoomable pannable />
+        {/* <MiniMap nodeStrokeWidth={3} zoomable pannable /> */}
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         <Panel position="top-left" className="flex gap-2 p-2">
            <Select onValueChange={handleExampleChange}>

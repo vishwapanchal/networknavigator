@@ -24,9 +24,9 @@ const Home: NextPage = () => {
             typingEnabled={false}   // Typing disabled for title
             glitchEnabled={true}    // Glitch enabled for title
             typingSpeed={50}        // Speed doesn't matter if typingEnabled is false
-            glitchIntervalMin={2000} // More frequent glitch for title
-            glitchIntervalMax={5000}
-            glitchDuration={250}     // Slightly longer glitch duration for title
+            glitchIntervalMin={500} // More frequent glitch for title
+            glitchIntervalMax={1500}
+            glitchDuration={350}     // Slightly longer glitch duration for title
           />
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
