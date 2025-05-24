@@ -8,75 +8,129 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 93%; /* Light Gray #EEEEEE */
-    --foreground: 0 0% 3.9%; /* Default dark */
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 235 63% 30%; /* Dark Blue #1A237E */
+    /* Raw HSL values for use in hsla() for glows */
+    --primary-raw-hsl: 210, 100%, 60%;
+    --accent-raw-hsl: 320, 100%, 60%;
+    --destructive-raw-hsl: 0, 90%, 65%;
+    --border-raw-hsl: 30, 40%, 50%; /* Warm Copper/Bronze */
+    --chart1-raw-hsl: 185, 100%, 50%; /* Neon Cyan */
+    --chart2-raw-hsl: 290, 100%, 65%; /* Neon Purple/Pink */
+    --chart3-raw-hsl: 120, 100%, 50%; /* Neon Green */
+    --chart4-raw-hsl: 45, 100%, 55%;  /* Neon Yellow/Orange */
+    --chart5-raw-hsl: 200, 100%, 70%; /* Bright Teal */
+
+    /* Dark Mode Base */
+    --background: 220 15% 10%; /* Deep Charcoal/Dark Desaturated Blue */
+    --foreground: 210 15% 90%; /* Light, slightly cool pastel */
+
+    /* Cards & Popovers - Darker base with pastel foregrounds */
+    --card: 220 15% 14%; /* Slightly lighter than main background */
+    --card-foreground: 210 20% 88%; /* Light pastel */
+    --popover: 220 15% 14%;
+    --popover-foreground: 210 20% 88%;
+
+    /* Vibrant Neon Accents */
+    --primary: var(--primary-raw-hsl);
     --primary-foreground: 0 0% 98%; /* White */
-    --secondary: 0 0% 90%; /* Slightly darker gray */
-    --secondary-foreground: 0 0% 9%; /* Dark Gray/Black */
-    --muted: 0 0% 93%; /* Light Gray #EEEEEE */
-    --muted-foreground: 0 0% 45.1%; /* Medium Gray */
-    --accent: 187 100% 42%; /* Teal #00BCD4 */
+    --accent: var(--accent-raw-hsl);
     --accent-foreground: 0 0% 98%; /* White */
-    --destructive: 0 84.2% 60.2%;
+
+    /* Organic Tech Warmth & Muted Tones */
+    --secondary: 220 15% 18%; /* Darker subtle element background */
+    --secondary-foreground: 210 15% 75%;
+    --muted: 220 15% 12%; /* Even more subtle background */
+    --muted-foreground: 30 10% 65%; /* Desaturated warm metallic / light warm grey */
+    --border: var(--border-raw-hsl);
+    --input: var(--border-raw-hsl); /* Using border color for input borders */
+    --ring: var(--accent-raw-hsl); /* Neon accent for focus rings */
+
+    /* Destructive States */
+    --destructive: var(--destructive-raw-hsl);
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 88%; /* Slightly darker gray than background */
-    --input: 0 0% 88%;
-    --ring: 235 63% 30%; /* Primary Dark Blue */
-    --chart-1: 187 100% 42%; /* Teal */
-    --chart-2: 235 63% 30%; /* Dark Blue */
-    --chart-3: 210 40% 50%; /* Muted Blue */
-    --chart-4: 30 80% 55%; /* Orange */
-    --chart-5: 120 40% 50%; /* Green */
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%; /* Almost White */
-    --sidebar-foreground: 0 0% 3.9%;
-    --sidebar-primary: 235 63% 30%; /* Dark Blue */
-    --sidebar-primary-foreground: 0 0% 98%; /* White */
-    --sidebar-accent: 187 100% 42%; /* Teal */
-    --sidebar-accent-foreground: 0 0% 98%; /* White */
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 187 100% 42%; /* Teal */
+
+    /* Chart Colors */
+    --chart-1: var(--chart1-raw-hsl);
+    --chart-2: var(--chart2-raw-hsl);
+    --chart-3: var(--chart3-raw-hsl);
+    --chart-4: var(--chart4-raw-hsl);
+    --chart-5: var(--chart5-raw-hsl);
+
+    /* Battery Colors (Neon) */
+    --battery-high-hsl: 130, 100%, 55%; /* Bright Neon Green */
+    --battery-medium-hsl: 50, 100%, 55%; /* Bright Neon Yellow/Orange */
+    --battery-low-hsl: 0, 100%, 60%;    /* Bright Neon Red */
+
+    --battery-high-color: hsl(var(--battery-high-hsl));
+    --battery-medium-color: hsl(var(--battery-medium-hsl));
+    --battery-low-color: hsl(var(--battery-low-hsl));
+
+    /* Sharper UI Elements */
+    --radius: 0.3rem;
+
+    /* Sidebar - mirrors main theme for consistency */
+    --sidebar-background: 220 15% 12%; /* Slightly distinct from main bg */
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
   }
 
   .dark {
-    /* Keeping dark mode variables as is, but they can be adjusted if needed */
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 235 63% 70%; /* Lighter Blue for dark mode */
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 187 100% 55%; /* Slightly lighter Teal for dark mode */
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 62.8% 30.6%;
+    --primary-raw-hsl: 210, 100%, 60%;
+    --accent-raw-hsl: 320, 100%, 60%;
+    --destructive-raw-hsl: 0, 90%, 65%;
+    --border-raw-hsl: 30, 40%, 50%;
+    --chart1-raw-hsl: 185, 100%, 50%;
+    --chart2-raw-hsl: 290, 100%, 65%;
+    --chart3-raw-hsl: 120, 100%, 50%;
+    --chart4-raw-hsl: 45, 100%, 55%;
+    --chart5-raw-hsl: 200, 100%, 70%;
+
+    --background: 220 15% 10%;
+    --foreground: 210 15% 90%;
+    --card: 220 15% 14%;
+    --card-foreground: 210 20% 88%;
+    --popover: 220 15% 14%;
+    --popover-foreground: 210 20% 88%;
+    --primary: var(--primary-raw-hsl);
+    --primary-foreground: 0 0% 98%;
+    --accent: var(--accent-raw-hsl);
+    --accent-foreground: 0 0% 98%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 15% 75%;
+    --muted: 220 15% 12%;
+    --muted-foreground: 30 10% 65%;
+    --border: var(--border-raw-hsl);
+    --input: var(--border-raw-hsl);
+    --ring: var(--accent-raw-hsl);
+    --destructive: var(--destructive-raw-hsl);
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 187 100% 55%; /* Teal */
-    --chart-1: 187 100% 55%; /* Teal */
-    --chart-2: 235 63% 70%; /* Lighter Blue */
-    --chart-3: 210 40% 60%; /* Muted Blue */
-    --chart-4: 30 80% 65%; /* Orange */
-    --chart-5: 120 40% 60%; /* Green */
-    --sidebar-background: 0 0% 10%; /* Dark Gray */
-    --sidebar-foreground: 0 0% 95%; /* Light Gray */
-    --sidebar-primary: 187 100% 55%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 235 63% 70%; /* Lighter Blue */
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 0 0% 14.9%;
-    --sidebar-ring: 187 100% 55%; /* Teal */
+
+    --chart-1: var(--chart1-raw-hsl);
+    --chart-2: var(--chart2-raw-hsl);
+    --chart-3: var(--chart3-raw-hsl);
+    --chart-4: var(--chart4-raw-hsl);
+    --chart-5: var(--chart5-raw-hsl);
+
+    --battery-high-hsl: 130, 100%, 55%;
+    --battery-medium-hsl: 50, 100%, 55%;
+    --battery-low-hsl: 0, 100%, 60%;
+
+    --battery-high-color: hsl(var(--battery-high-hsl));
+    --battery-medium-color: hsl(var(--battery-medium-hsl));
+    --battery-low-color: hsl(var(--battery-low-hsl));
+
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent));
+    --sidebar-accent-foreground: hsl(var(--accent-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
   }
 }
 
@@ -89,28 +143,87 @@ body {
   }
 }
 
+/* Text Glow Utilities */
+.text-glow-primary {
+  color: hsl(var(--primary));
+  text-shadow:
+    0 0 4px hsla(var(--primary-raw-hsl), 0.8),
+    0 0 8px hsla(var(--primary-raw-hsl), 0.6),
+    0 0 12px hsla(var(--primary-raw-hsl), 0.4);
+}
+
+.text-glow-accent {
+  color: hsl(var(--accent));
+  text-shadow:
+    0 0 4px hsla(var(--accent-raw-hsl), 0.8),
+    0 0 8px hsla(var(--accent-raw-hsl), 0.6),
+    0 0 12px hsla(var(--accent-raw-hsl), 0.4);
+}
+
+/* Battery Text Color Utilities */
+.text-battery-high {
+  color: var(--battery-high-color);
+  text-shadow: 0 0 5px hsla(var(--battery-high-hsl), 0.7);
+}
+.text-battery-medium {
+  color: var(--battery-medium-color);
+  text-shadow: 0 0 5px hsla(var(--battery-medium-hsl), 0.7);
+}
+.text-battery-low {
+  color: var(--battery-low-color);
+  text-shadow: 0 0 5px hsla(var(--battery-low-hsl), 0.7);
+}
+
 /* ReactFlow specific styles */
 .react-flow__node {
-  @apply bg-card text-card-foreground border border-primary rounded-md shadow-md text-center p-2;
+  @apply bg-card text-card-foreground rounded-md shadow-md text-center p-2;
+  border: 1px solid hsl(var(--accent)); /* Metallic border */
+  box-shadow: 0 0 6px hsla(var(--accent-raw-hsl), 0.5), 0 0 10px hsla(var(--accent-raw-hsl), 0.3); /* Neon glow */
   min-width: 80px;
 }
 
 .react-flow__node.selected {
-  @apply border-accent border-2 shadow-lg;
+  border: 2px solid hsl(var(--primary)); /* Brighter neon border when selected */
+  box-shadow: 0 0 8px hsla(var(--primary-raw-hsl), 0.7), 0 0 15px hsla(var(--primary-raw-hsl), 0.5);
 }
 
 .react-flow__edge-path {
-  @apply stroke-primary stroke-2;
+  stroke: hsl(var(--primary));
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 2px hsla(var(--primary-raw-hsl), 0.7)) drop-shadow(0 0 4px hsla(var(--primary-raw-hsl), 0.5));
 }
 
-.react-flow__edge.selected .react-flow__edge-path {
-    @apply stroke-accent stroke-[3px];
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: hsl(var(--accent));
+  stroke-width: 2.5px; /* Slightly thicker */
+  filter: drop-shadow(0 0 3px hsla(var(--accent-raw-hsl), 0.8)) drop-shadow(0 0 6px hsla(var(--accent-raw-hsl), 0.6));
 }
 
 .react-flow__handle {
-  @apply w-2 h-2 bg-muted-foreground rounded-full border-2 border-background;
+  @apply w-2 h-2 rounded-full border-2;
+  background-color: hsl(var(--muted)); /* Muted handle */
+  border-color: hsl(var(--background)); /* Contrast with node background */
+}
+.react-flow__handle:hover {
+  background-color: hsl(var(--accent));
 }
 
 .react-flow__attribution {
     @apply hidden; /* Hide ReactFlow attribution */
+}
+
+/* Ensure chart tooltips and legends fit the dark theme */
+.recharts-tooltip-wrapper {
+  background-color: hsla(var(--card), 0.9) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 2px 10px hsla(var(--background), 0.5) !important;
+}
+.recharts-tooltip-item {
+  color: hsl(var(--card-foreground)) !important;
+}
+.recharts-legend-item {
+  color: hsl(var(--foreground)) !important;
 }

@@ -11,14 +11,14 @@ const Home: NextPage = () => {
     <NetworkProvider>
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
         {/* Title, Credits, and Tagline Area */}
-        <header className="p-4 border-b text-center shadow-sm bg-card">
-          <h1 className="text-xl md:text-2xl font-bold text-primary">
+        <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm">
+          <h1 className="text-xl md:text-2xl font-bold text-glow-primary">
             Optimizing Data Flow in IoT Sensor Networks Using Graph Theory
           </h1>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
-          <p className="text-sm md:text-md font-semibold text-accent mt-2">
+          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2">
             Harnessing graph intelligence to power smarter, faster IoT networks
           </p>
         </header>
@@ -31,7 +31,6 @@ const Home: NextPage = () => {
             <PerformanceMetrics />
           </div>
         </div>
-        {/* Redundant Toaster removed, as it's present in RootLayout */}
       </div>
     </NetworkProvider>
   );

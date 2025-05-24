@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Card, CardContent } from '@/components/ui/card';
-import { BatteryMedium, Layers2, Router, Network, Server } from 'lucide-react'; // Using Router for Router/Gateway, Network for Sensor
+import { BatteryMedium, Layers2, Router, Network, Server } from 'lucide-react';
 import type { NodeData } from '@/context/network-context';
 
 const CustomNode = memo(({ data, isConnectable, selected }: NodeProps<NodeData>) => {
@@ -22,36 +22,37 @@ const CustomNode = memo(({ data, isConnectable, selected }: NodeProps<NodeData>)
     }
   };
 
-  // Determine battery color based on level
-   const getBatteryColor = (level: number) => {
-    if (level < 20) return 'text-destructive';
-    if (level < 50) return 'text-yellow-500'; // Note: direct color use, might need theme adjustment
-    return 'text-green-500'; // Note: direct color use
+  // Determine battery color class based on level
+   const getBatteryColorClass = (level: number) => {
+    if (level < 20) return 'text-battery-low';
+    if (level < 50) return 'text-battery-medium';
+    return 'text-battery-high';
    }
 
   return (
-    <Card className={`w-36 shadow-md rounded-lg border ${selected ? 'border-accent border-2' : 'border-primary'} bg-card text-card-foreground transition-all duration-150 ease-in-out`}>
+    // Card component already picks up styling from globals.css via Tailwind config
+    // The explicit border and selected style is handled by react-flow__node classes in globals.css
+    <Card className={`w-36 transition-all duration-150 ease-in-out`}>
       <CardContent className="p-2 text-center">
          <div className="flex items-center justify-center mb-1 gap-1">
             {getIcon()}
             <div className="text-xs font-semibold truncate" title={label}>{label}</div>
          </div>
-        <div className="flex justify-around items-center text-xs mt-1 text-muted-foreground">
-          <div className={`flex items-center gap-0.5 ${getBatteryColor(battery)}`} title={`Battery: ${battery}%`}>
+        <div className="flex justify-around items-center text-xs mt-1">
+          <div className={`flex items-center gap-0.5 ${getBatteryColorClass(battery)}`} title={`Battery: ${battery}%`}>
             <BatteryMedium size={12} />
             <span>{battery}%</span>
           </div>
-          <div className="flex items-center gap-0.5" title={`Queue: ${queueSize}`}>
+          <div className="flex items-center gap-0.5 text-muted-foreground" title={`Queue: ${queueSize}`}>
             <Layers2 size={12} />
             <span>{queueSize}</span>
           </div>
         </div>
       </CardContent>
-       {/* Add Handles - adjust positions as needed */}
-      <Handle type="target" position={Position.Top} isConnectable={isConnectable} className="w-2 h-2 !bg-primary" />
-      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} className="w-2 h-2 !bg-primary"/>
-      <Handle type="target" position={Position.Left} isConnectable={isConnectable} className="w-2 h-2 !bg-primary" />
-      <Handle type="source" position={Position.Right} isConnectable={isConnectable} className="w-2 h-2 !bg-primary"/>
+      <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
+      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
+      <Handle type="target" position={Position.Left} isConnectable={isConnectable} />
+      <Handle type="source" position={Position.Right} isConnectable={isConnectable} />
     </Card>
   );
 });
