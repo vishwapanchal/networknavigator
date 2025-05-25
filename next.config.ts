@@ -25,10 +25,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'png.pngtree.com', // Added new hostname for header background
+        hostname: 'png.pngtree.com',
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 't4.ftcdn.net', // Added new hostname for header background
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
 };
