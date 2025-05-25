@@ -12,17 +12,17 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
   const taglineText = "Structuring the Invisible.";
-  const headerBackgroundImageUrl = 'https://png.pngtree.com/background/20210715/original/pngtree-abstract-futuristic-circuit-board-illustration-high-computer-technology-background-design-picture-image_1261001.jpg'; // Updated image URL
+  const headerBackgroundImageUrl = 'https://t4.ftcdn.net/jpg/04/33/61/77/360_F_433617782_NQqvkrU35Y6ZIuzwMadUGUx3Ag5ZfDHs.jpg'; // Updated image URL
 
   return (
     <NetworkProvider>
       <div className="flex flex-col h-screen w-screen overflow-hidden">
-        {/* Title, Credits, and Tagline Area */}
+        {/* Header Area - Now using body background, covered by its own image */}
         <header
           className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative bg-cover bg-center"
           style={{ backgroundImage: `url('${headerBackgroundImageUrl}')` }}
         >
-          {/* Overlay to improve text readability if needed, or remove bg-card/80 */}
+          {/* Overlay to improve text readability if needed */}
           <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Optional: Dark overlay */}
           
           {/* Logo - ensure z-index is higher than overlay */}
@@ -49,7 +49,7 @@ const Home: NextPage = () => {
               glitchIntervalMax={1500}
               glitchDuration={350}
             />
-            <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 text-glow-accent">
               Collaboratively engineered by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
             </p>
             <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em] underline-animate">
@@ -58,8 +58,8 @@ const Home: NextPage = () => {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <div className="flex flex-1 overflow-hidden bg-background/80 backdrop-blur-sm"> {/* Main content area with semi-transparent theme background and blur */}
+        {/* Main Content Area - This will now allow body background to show through */}
+        <div className="flex flex-1 overflow-hidden"> {/* Main content area with semi-transparent theme background and blur */}
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden"> {/* This column contains Canvas and Metrics */}
             <NetworkCanvas />
