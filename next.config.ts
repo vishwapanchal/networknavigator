@@ -19,7 +19,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com', // Added new hostname
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'png.pngtree.com', // Added new hostname for header background
         port: '',
         pathname: '/**',
       },

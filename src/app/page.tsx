@@ -2,7 +2,7 @@
 'use client';
 
 import type { NextPage } from 'next';
-import Image from 'next/image'; // Import next/image
+import Image from 'next/image';
 import { NetworkCanvas } from '@/components/network-canvas';
 import { Sidebar } from '@/components/sidebar';
 import { PerformanceMetrics } from '@/components/performance-metrics';
@@ -12,42 +12,50 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
   const taglineText = "Structuring the Invisible.";
+  const headerBackgroundImageUrl = 'https://png.pngtree.com/background/20210715/original/pngtree-green-digital-circuit-diagram-background-picture-image_1259403.jpg';
 
   return (
     <NetworkProvider>
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
         {/* Title, Credits, and Tagline Area */}
-        <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative"> {/* Added relative positioning */}
-          {/* Logo */}
-          <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10"> {/* Added z-10 */}
+        <header
+          className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative bg-cover bg-center"
+          style={{ backgroundImage: `url('${headerBackgroundImageUrl}')` }}
+        >
+          {/* Overlay to improve text readability if needed, or remove bg-card/80 */}
+          <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Optional: Dark overlay */}
+          
+          {/* Logo - ensure z-index is higher than overlay */}
+          <div className="absolute top-2 left-2 md:top-4 md:left-4 z-20">
             <Image
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyawIRbc2YMupSsJT8UqUJmMJD4M4kWJ5CGg&s" // Updated image source
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyawIRbc2YMupSsJT8UqUJmMJD4M4kWJ5CGg&s"
               alt="RV College Logo"
-              width={70} // Increased width
-              height={70} // Increased height
-              className="rounded-full" // Optional: if you want a circular mask for a square logo
-              priority // Prioritize loading the logo
+              width={70}
+              height={70}
+              className="rounded-full"
+              priority
             />
           </div>
 
-          {/* Title with glitch, no typing */}
-          <TypingGlitchTagline
-            text={titleText}
-            className="text-xl md:text-2xl font-bold text-glow-primary block"
-            typingEnabled={false}
-            glitchEnabled={true}
-            typingSpeed={50}
-            glitchIntervalMin={500}
-            glitchIntervalMax={1500}
-            glitchDuration={350}
-          />
-          <p className="text-xs md:text-sm text-muted-foreground mt-1">
-            Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
-          </p>
-          {/* Static Tagline with glow and underline animation */}
-          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em] underline-animate">
-            {taglineText}
-          </p>
+          {/* Content container to be above overlay */}
+          <div className="relative z-10">
+            <TypingGlitchTagline
+              text={titleText}
+              className="text-xl md:text-2xl font-bold text-glow-primary block"
+              typingEnabled={false}
+              glitchEnabled={true}
+              typingSpeed={50}
+              glitchIntervalMin={500}
+              glitchIntervalMax={1500}
+              glitchDuration={350}
+            />
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 text-glow-accent">
+              Collaboratively engineered by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
+            </p>
+            <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em] underline-animate">
+              {taglineText}
+            </p>
+          </div>
         </header>
 
         {/* Main Content Area */}
