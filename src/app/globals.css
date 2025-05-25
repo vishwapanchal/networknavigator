@@ -256,38 +256,47 @@ body {
   width: 0%;
   right: auto;
 
-  animation-name: draw-underline; /* Will use the new keyframes below */
-  animation-duration: 3s; /* Duration for one full LTR and RTL cycle */
+  animation-name: draw-underline; 
+  animation-duration: 3s; 
   animation-timing-function: ease-in-out;
-  animation-delay: 0.5s; /* Initial delay before animation starts */
+  animation-delay: 0.5s; 
   animation-iteration-count: infinite;
-  /* animation-direction: alternate; REMOVED as keyframes handle the full cycle */
 }
 
-@keyframes draw-underline { /* UPDATED keyframes for ping-pong draw effect */
-  0% { /* LTR: Start empty from left */
+@keyframes draw-underline {
+  /* LTR Draw */
+  0% {
     left: 0%;
     width: 0%;
-    right: auto; /* Ensure it's not fixed to right */
+    right: auto;
   }
-  45% { /* LTR: Drawn fully */
+  40% { /* LTR Drawn fully */
     left: 0%;
     width: 100%;
     right: auto;
   }
-  /* State from 45% to 50% is effectively holding the LTR full line */
-  50% { /* RTL: Start empty from right */
+
+  /* Transition from LTR full to RTL empty */
+  /* During this 10% (40% to 50%), width goes from 100% to 0% */
+  /* and anchor point effectively switches */
+  50% {
     right: 0%;
-    left: auto; /* Ensure it's not fixed to left */
     width: 0%;
-  }
-  95% { /* RTL: Drawn fully */
-    right: 0%;
     left: auto;
-    width: 100%;
   }
-  /* State from 95% to 100% is effectively holding the RTL full line */
-  100% { /* Reset for loop (back to initial state of LTR draw for seamless repeat) */
+
+  /* RTL Draw */
+  /* Starts immediately after transition */
+  90% { /* RTL Drawn fully */
+    right: 0%;
+    width: 100%;
+    left: auto;
+  }
+
+  /* Transition from RTL full to LTR empty */
+  /* During this 10% (90% to 100%), width goes from 100% to 0% */
+  /* and anchor point effectively switches */
+  100% {
     left: 0%;
     width: 0%;
     right: auto;
