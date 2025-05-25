@@ -2,6 +2,7 @@
 'use client';
 
 import type { NextPage } from 'next';
+import Image from 'next/image'; // Import next/image
 import { NetworkCanvas } from '@/components/network-canvas';
 import { Sidebar } from '@/components/sidebar';
 import { PerformanceMetrics } from '@/components/performance-metrics';
@@ -16,7 +17,19 @@ const Home: NextPage = () => {
     <NetworkProvider>
       <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
         {/* Title, Credits, and Tagline Area */}
-        <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm">
+        <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative"> {/* Added relative positioning */}
+          {/* Logo */}
+          <div className="absolute top-2 left-2 md:top-4 md:left-4">
+            <Image
+              src="/rv_logo.png" // Path relative to the 'public' directory
+              alt="RV College Logo"
+              width={60} // Adjust width as needed
+              height={60} // Adjust height as needed
+              className="rounded-full" // Optional: if you want a circular mask for a square logo
+              priority // Prioritize loading the logo
+            />
+          </div>
+
           {/* Title with glitch, no typing */}
           <TypingGlitchTagline
             text={titleText}
