@@ -43,7 +43,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images6.alphacoders.com', // Added new hostname for header background
+        hostname: 'images6.alphacoders.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.vecteezy.com', // Added new hostname for header background
         port: '',
         pathname: '/**',
       }
