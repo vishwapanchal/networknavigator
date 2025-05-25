@@ -119,84 +119,106 @@ export const exampleScenarios: ExampleScenario[] = [
    {
     id: 'hospital-iot-network',
     name: '6. Hospital IoT Network',
-    description: 'A large, complex IoT network simulating a hospital environment. Demonstrates adaptive routing with diverse sensor needs (e.g., low-latency ICU data vs. low-power asset tags), node failure impact on critical paths, bottleneck identification at core routers/gateways, and benefits of redundancy. Adjust adaptive weights to prioritize different operational needs.',
+    description: 'A large, complex IoT network simulating a hospital environment. Nodes are arranged floor-wise and room-wise to show diverse sensor needs (e.g., low-latency ICU data vs. low-power asset tags), node failure impact on critical paths, bottleneck identification at core routers/gateways, and benefits of redundancy. Adjust adaptive weights to prioritize different operational needs.',
     data: {
       nodes: [
-        // Wing A (General Ward - Top-Left) - Conceptual Floor 1
-        { id: 'patMonA1', type: 'custom', position: { x: 50, y: 50 }, data: { id: 'patMonA1', label: 'Patient Mon A1 (R101)', battery: 95, queueSize: 5, role: 'sensor', isFailed: false } },
-        { id: 'bedOccA1', type: 'custom', position: { x: 50, y: 120 }, data: { id: 'bedOccA1', label: 'Bed Occ A1 (R101)', battery: 80, queueSize: 2, role: 'sensor', isFailed: false } },
-        { id: 'patMonA2', type: 'custom', position: { x: 150, y: 50 }, data: { id: 'patMonA2', label: 'Patient Mon A2 (R102)', battery: 92, queueSize: 7, role: 'sensor', isFailed: false } },
-        { id: 'bedOccA2', type: 'custom', position: { x: 150, y: 120 }, data: { id: 'bedOccA2', label: 'Bed Occ A2 (R102)', battery: 78, queueSize: 3, role: 'sensor', isFailed: false } },
-        { id: 'roomEnvA1', type: 'custom', position: { x: 100, y: 190 }, data: { id: 'roomEnvA1', label: 'Room Env A (Wing A)', battery: 99, queueSize: 1, role: 'sensor', isFailed: false } },
-        { id: 'staffBadgeA1', type: 'custom', position: { x: 50, y: 260 }, data: { id: 'staffBadgeA1', label: 'Staff A1 (Wing A)', battery: 65, queueSize: 0, role: 'sensor', isFailed: false } },
-        { id: 'floorRouterA', type: 'custom', position: { x: 250, y: 150 }, data: { id: 'floorRouterA', label: 'Floor Rtr A (F1)', battery: 100, queueSize: 20, role: 'router', isFailed: false } },
+        // Wing A (General Ward - Top-Left Block)
+        { id: 'sA1', type: 'custom', position: { x: 50, y: 50 }, data: { id: 'sA1', label: 'S-A1 (R101 Mon)', battery: 95, queueSize: 5, role: 'sensor', isFailed: false } },
+        { id: 'sA2', type: 'custom', position: { x: 50, y: 120 }, data: { id: 'sA2', label: 'S-A2 (R101 Bed)', battery: 80, queueSize: 2, role: 'sensor', isFailed: false } },
+        { id: 'sA3', type: 'custom', position: { x: 150, y: 50 }, data: { id: 'sA3', label: 'S-A3 (R102 Mon)', battery: 92, queueSize: 7, role: 'sensor', isFailed: false } },
+        { id: 'sA4', type: 'custom', position: { x: 150, y: 120 }, data: { id: 'sA4', label: 'S-A4 (R102 Bed)', battery: 78, queueSize: 3, role: 'sensor', isFailed: false } },
+        { id: 'sA5', type: 'custom', position: { x: 100, y: 190 }, data: { id: 'sA5', label: 'S-A5 (Env A)', battery: 99, queueSize: 1, role: 'sensor', isFailed: false } },
+        { id: 'rA', type: 'custom', position: { x: 250, y: 100 }, data: { id: 'rA', label: 'Rtr-A (F1)', battery: 100, queueSize: 20, role: 'router', isFailed: false } },
 
-        // Wing B (ICU - Bottom-Left) - Conceptual Floor 1 or Specialized Area
-        { id: 'icuMonB1', type: 'custom', position: { x: 50, y: 400 }, data: { id: 'icuMonB1', label: 'ICU Mon B1 (Bed1)', battery: 98, queueSize: 8, role: 'sensor', isFailed: false } },
-        { id: 'medEqB1', type: 'custom', position: { x: 50, y: 470 }, data: { id: 'medEqB1', label: 'Ventilator B1 (Bed1)', battery: 70, queueSize: 15, role: 'sensor', isFailed: false } },
-        { id: 'icuMonB2', type: 'custom', position: { x: 150, y: 400 }, data: { id: 'icuMonB2', label: 'ICU Mon B2 (Bed2)', battery: 97, queueSize: 9, role: 'sensor', isFailed: false } },
-        { id: 'assetTagB1', type: 'custom', position: { x: 150, y: 470 }, data: { id: 'assetTagB1', label: 'X-Ray Tag B1 (ICU)', battery: 35, queueSize: 0, role: 'sensor', isFailed: false } },
-        { id: 'floorRouterB', type: 'custom', position: { x: 250, y: 435 }, data: { id: 'floorRouterB', label: 'ICU Rtr B', battery: 100, queueSize: 30, role: 'router', isFailed: false } },
+        // Wing B (ICU - Bottom-Left Block)
+        { id: 'sB1', type: 'custom', position: { x: 50, y: 350 }, data: { id: 'sB1', label: 'S-B1 (ICU1 Mon)', battery: 98, queueSize: 8, role: 'sensor', isFailed: false } },
+        { id: 'sB2', type: 'custom', position: { x: 50, y: 420 }, data: { id: 'sB2', label: 'S-B2 (ICU1 Vent)', battery: 70, queueSize: 15, role: 'sensor', isFailed: false } },
+        { id: 'sB3', type: 'custom', position: { x: 150, y: 350 }, data: { id: 'sB3', label: 'S-B3 (ICU2 Mon)', battery: 97, queueSize: 9, role: 'sensor', isFailed: false } },
+        { id: 'sB4', type: 'custom', position: { x: 150, y: 420 }, data: { id: 'sB4', label: 'S-B4 (Asset Tag)', battery: 35, queueSize: 0, role: 'sensor', isFailed: false } },
+        { id: 'rB', type: 'custom', position: { x: 250, y: 385 }, data: { id: 'rB', label: 'Rtr-B (ICU)', battery: 100, queueSize: 30, role: 'router', isFailed: false } },
 
-        // Wing C (Outpatient/Other Ward - Top-Right) - Conceptual Floor 2
-        { id: 'patMonC1', type: 'custom', position: { x: 600, y: 50 }, data: { id: 'patMonC1', label: 'Patient Mon C1 (R201)', battery: 93, queueSize: 6, role: 'sensor', isFailed: false } },
-        { id: 'bedOccC1', type: 'custom', position: { x: 600, y: 120 }, data: { id: 'bedOccC1', label: 'Bed Occ C1 (R201)', battery: 82, queueSize: 2, role: 'sensor', isFailed: false } },
-        { id: 'staffBadgeC1', type: 'custom', position: { x: 600, y: 190 }, data: { id: 'staffBadgeC1', label: 'Staff C1 (Wing C)', battery: 60, queueSize: 0, role: 'sensor', isFailed: false } },
-        { id: 'floorRouterC', type: 'custom', position: { x: 500, y: 120 }, data: { id: 'floorRouterC', label: 'Floor Rtr C (F2)', battery: 100, queueSize: 18, role: 'router', isFailed: false } },
+        // Wing C (Outpatient/Other Ward - Top-Right Block)
+        { id: 'sC1', type: 'custom', position: { x: 600, y: 50 }, data: { id: 'sC1', label: 'S-C1 (R201 Mon)', battery: 93, queueSize: 6, role: 'sensor', isFailed: false } },
+        { id: 'sC2', type: 'custom', position: { x: 600, y: 120 }, data: { id: 'sC2', label: 'S-C2 (R201 Bed)', battery: 82, queueSize: 2, role: 'sensor', isFailed: false } },
+        { id: 'sC3', type: 'custom', position: { x: 700, y: 85 }, data: { id: 'sC3', label: 'S-C3 (Staff C)', battery: 60, queueSize: 0, role: 'sensor', isFailed: false } },
+        { id: 'rC', type: 'custom', position: { x: 500, y: 85 }, data: { id: 'rC', label: 'Rtr-C (F2)', battery: 100, queueSize: 18, role: 'router', isFailed: false } },
+        
+        // Core Infrastructure (Middle Area - Vertical)
+        { id: 'cR1', type: 'custom', position: { x: 400, y: 150 }, data: { id: 'cR1', label: 'Core Rtr 1', battery: 100, queueSize: 40, role: 'router', isFailed: false } },
+        { id: 'cR2', type: 'custom', position: { x: 400, y: 300 }, data: { id: 'cR2', label: 'Core Rtr 2', battery: 100, queueSize: 35, role: 'router', isFailed: false } },
+        
+        // Gateways (Far Right - Vertical)
+        { id: 'gW1', type: 'custom', position: { x: 850, y: 150 }, data: { id: 'gW1', label: 'Main Gateway', battery: 100, queueSize: 50, role: 'gateway', isFailed: false } },
+        { id: 'gW2', type: 'custom', position: { x: 850, y: 300 }, data: { id: 'gW2', label: 'ER Gateway', battery: 100, queueSize: 25, role: 'gateway', isFailed: false } },
+        // Standalone node for varied connections
+        { id: 'sX1', type: 'custom', position: { x: 600, y: 385 }, data: { id: 'sX1', label: 'S-X1 (Lab Eq)', battery: 88, queueSize: 4, role: 'sensor', isFailed: false } },
 
-        // Core Infrastructure (Middle Area)
-        { id: 'coreRouter1', type: 'custom', position: { x: 400, y: 250 }, data: { id: 'coreRouter1', label: 'Core Rtr 1', battery: 100, queueSize: 40, role: 'router', isFailed: false } },
-        { id: 'coreRouter2', type: 'custom', position: { x: 400, y: 350 }, data: { id: 'coreRouter2', label: 'Core Rtr 2 (Backup)', battery: 100, queueSize: 35, role: 'router', isFailed: false } },
-        { id: 'backupRouter', type: 'custom', position: { x: 550, y: 300 }, data: { id: 'backupRouter', label: 'Alt Rtr Infra', battery: 100, queueSize: 10, role: 'router', isFailed: false } }, // Renamed for clarity
-
-        // Gateways (Far Right)
-        { id: 'mainGateway', type: 'custom', position: { x: 750, y: 200 }, data: { id: 'mainGateway', label: 'Main Gateway', battery: 100, queueSize: 50, role: 'gateway', isFailed: false } },
-        { id: 'erGateway', type: 'custom', position: { x: 750, y: 400 }, data: { id: 'erGateway', label: 'ER Gateway (Critical)', battery: 100, queueSize: 25, role: 'gateway', isFailed: false } },
       ],
       edges: [
         // Wing A to Floor Router A
-        { id: 'e-pMA1-fRA', source: 'patMonA1', target: 'floorRouterA', data: { latency: 10, bandwidth: 100 } },
-        { id: 'e-bOA1-fRA', source: 'bedOccA1', target: 'floorRouterA', data: { latency: 8, bandwidth: 80 } },
-        { id: 'e-pMA2-fRA', source: 'patMonA2', target: 'floorRouterA', data: { latency: 12, bandwidth: 100 } },
-        { id: 'e-bOA2-fRA', source: 'bedOccA2', target: 'floorRouterA', data: { latency: 9, bandwidth: 80 } },
-        { id: 'e-rEA1-fRA', source: 'roomEnvA1', target: 'floorRouterA', data: { latency: 15, bandwidth: 50 } },
-        { id: 'e-sBA1-fRA', source: 'staffBadgeA1', target: 'floorRouterA', data: { latency: 5, bandwidth: 60 } },
+        { id: 'e-sA1-rA', source: 'sA1', target: 'rA', data: { latency: 10, bandwidth: 100 } },
+        { id: 'e-sA2-rA', source: 'sA2', target: 'rA', data: { latency: 8, bandwidth: 80 } },
+        { id: 'e-sA3-rA', source: 'sA3', target: 'rA', data: { latency: 12, bandwidth: 100 } },
+        { id: 'e-sA4-rA', source: 'sA4', target: 'rA', data: { latency: 9, bandwidth: 80 } },
+        { id: 'e-sA5-rA', source: 'sA5', target: 'rA', data: { latency: 15, bandwidth: 50 } },
         // Wing B to Floor Router B
-        { id: 'e-iMB1-fRB', source: 'icuMonB1', target: 'floorRouterB', data: { latency: 5, bandwidth: 150 } },
-        { id: 'e-mEB1-fRB', source: 'medEqB1', target: 'floorRouterB', data: { latency: 7, bandwidth: 120 } },
-        { id: 'e-iMB2-fRB', source: 'icuMonB2', target: 'floorRouterB', data: { latency: 6, bandwidth: 150 } },
-        { id: 'e-aTB1-fRB', source: 'assetTagB1', target: 'floorRouterB', data: { latency: 20, bandwidth: 40 } },
+        { id: 'e-sB1-rB', source: 'sB1', target: 'rB', data: { latency: 5, bandwidth: 150 } },
+        { id: 'e-sB2-rB', source: 'sB2', target: 'rB', data: { latency: 7, bandwidth: 120 } },
+        { id: 'e-sB3-rB', source: 'sB3', target: 'rB', data: { latency: 6, bandwidth: 150 } },
+        { id: 'e-sB4-rB', source: 'sB4', target: 'rB', data: { latency: 20, bandwidth: 40 } },
         // Wing C to Floor Router C
-        { id: 'e-pMC1-fRC', source: 'patMonC1', target: 'floorRouterC', data: { latency: 11, bandwidth: 100 } },
-        { id: 'e-bOC1-fRC', source: 'bedOccC1', target: 'floorRouterC', data: { latency: 10, bandwidth: 80 } },
-        { id: 'e-sBC1-fRC', source: 'staffBadgeC1', target: 'floorRouterC', data: { latency: 6, bandwidth: 60 } },
-        // Floor Routers to Core Routers & Backup
-        { id: 'e-fRA-cR1', source: 'floorRouterA', target: 'coreRouter1', data: { latency: 5, bandwidth: 300 } },
-        { id: 'e-fRA-cR2', source: 'floorRouterA', target: 'coreRouter2', data: { latency: 6, bandwidth: 280 } }, // Redundancy to core
-        { id: 'e-fRB-cR1', source: 'floorRouterB', target: 'coreRouter1', data: { latency: 4, bandwidth: 350 } }, // ICU to primary core
-        { id: 'e-fRB-cR2', source: 'floorRouterB', target: 'coreRouter2', data: { latency: 5, bandwidth: 320 } }, // ICU to backup core
-        { id: 'e-fRC-cR1', source: 'floorRouterC', target: 'coreRouter1', data: { latency: 6, bandwidth: 290 } },
-        { id: 'e-fRC-bkR', source: 'floorRouterC', target: 'backupRouter', data: { latency: 7, bandwidth: 260 } }, // Wing C to alt infra
-
-        // Connections between Core routers and Backup Router
-        { id: 'e-cR1-cR2', source: 'coreRouter1', target: 'coreRouter2', data: { latency: 2, bandwidth: 1000 } }, // Core link
-        { id: 'e-cR1-bkR', source: 'coreRouter1', target: 'backupRouter', data: { latency: 3, bandwidth: 700 } },
-        { id: 'e-cR2-bkR', source: 'coreRouter2', target: 'backupRouter', data: { latency: 3, bandwidth: 650 } },
-
-        // Core Routers & Backup to Gateways
-        { id: 'e-cR1-mG', source: 'coreRouter1', target: 'mainGateway', data: { latency: 2, bandwidth: 800 } },
-        { id: 'e-cR1-eG', source: 'coreRouter1', target: 'erGateway', data: { latency: 3, bandwidth: 400 } }, // Core 1 to ER Gateway
-        { id: 'e-cR2-mG', source: 'coreRouter2', target: 'mainGateway', data: { latency: 3, bandwidth: 750 } }, // Core 2 to Main Gateway
-        { id: 'e-cR2-eG', source: 'coreRouter2', target: 'erGateway', data: { latency: 2, bandwidth: 450 } },
-        { id: 'e-bkR-mG', source: 'backupRouter', target: 'mainGateway', data: { latency: 4, bandwidth: 500 } },
-        { id: 'e-bkR-eG', source: 'backupRouter', target: 'erGateway', data: { latency: 5, bandwidth: 300 } }, // Alt infra to ER
-
-        // Direct connection from ICU router to ER Gateway for critical path option
-        { id: 'e-fRB-eG', source: 'floorRouterB', target: 'erGateway', data: { latency: 3, bandwidth: 500 } },
-
+        { id: 'e-sC1-rC', source: 'sC1', target: 'rC', data: { latency: 11, bandwidth: 100 } },
+        { id: 'e-sC2-rC', source: 'sC2', target: 'rC', data: { latency: 10, bandwidth: 80 } },
+        { id: 'e-sC3-rC', source: 'sC3', target: 'rC', data: { latency: 6, bandwidth: 60 } },
+        // Floor Routers to Core Routers
+        { id: 'e-rA-cR1', source: 'rA', target: 'cR1', data: { latency: 5, bandwidth: 300 } },
+        { id: 'e-rB-cR2', source: 'rB', target: 'cR2', data: { latency: 4, bandwidth: 350 } },
+        { id: 'e-rC-cR1', source: 'rC', target: 'cR1', data: { latency: 6, bandwidth: 290 } },
+        // Inter-Core and Core to backup/alternative paths
+        { id: 'e-cR1-cR2', source: 'cR1', target: 'cR2', data: { latency: 2, bandwidth: 1000 } },
+        { id: 'e-rA-cR2', source: 'rA', target: 'cR2', data: { latency: 7, bandwidth: 250 } }, // rA to cR2
+        { id: 'e-rB-cR1', source: 'rB', target: 'cR1', data: { latency: 7, bandwidth: 280 } }, // rB to cR1
+        { id: 'e-rC-cR2', source: 'rC', target: 'cR2', data: { latency: 8, bandwidth: 240 } }, // rC to cR2
+        // Lab Equipment sX1 connections
+        { id: 'e-sX1-rB', source: 'sX1', target: 'rB', data: { latency: 12, bandwidth: 90 } },
+        { id: 'e-sX1-cR2', source: 'sX1', target: 'cR2', data: { latency: 10, bandwidth: 150 } },
+        // Core Routers to Gateways
+        { id: 'e-cR1-gW1', source: 'cR1', target: 'gW1', data: { latency: 2, bandwidth: 800 } },
+        { id: 'e-cR2-gW2', source: 'cR2', target: 'gW2', data: { latency: 2, bandwidth: 750 } },
+        // Backup paths to gateways
+        { id: 'e-cR1-gW2', source: 'cR1', target: 'gW2', data: { latency: 4, bandwidth: 500 } }, // Core 1 to ER Gateway
+        { id: 'e-cR2-gW1', source: 'cR2', target: 'gW1', data: { latency: 4, bandwidth: 600 } }, // Core 2 to Main Gateway
+        // Direct from ICU router to ER Gateway
+        { id: 'e-rB-gW2', source: 'rB', target: 'gW2', data: { latency: 3, bandwidth: 500 } },
       ].map(e => ({ ...e, type: 'default', markerEnd: { type: MarkerType.ArrowClosed } })),
     },
+  },
+  {
+    id: 'demo-scenario',
+    name: '7. Algorithm & Failure Demo',
+    description: 'A simple network to demonstrate algorithm differences and node failure re-routing.',
+    data: {
+      nodes: [
+        { id: 'S', type: 'custom', position: { x: 50, y: 200 }, data: { id: 'S', label: 'Source S', battery: 95, queueSize: 2, role: 'sensor', isFailed: false } },
+        { id: 'R1', type: 'custom', position: { x: 250, y: 100 }, data: { id: 'R1', label: 'Router R1', battery: 90, queueSize: 5, role: 'router', isFailed: false } },
+        { id: 'R2', type: 'custom', position: { x: 250, y: 300 }, data: { id: 'R2', label: 'Router R2', battery: 95, queueSize: 20, role: 'router', isFailed: false } },
+        { id: 'R3', type: 'custom', position: { x: 450, y: 200 }, data: { id: 'R3', label: 'Router R3', battery: 85, queueSize: 10, role: 'router', isFailed: false } },
+        { id: 'T', type: 'custom', position: { x: 650, y: 200 }, data: { id: 'T', label: 'Target T', battery: 100, queueSize: 1, role: 'gateway', isFailed: false } },
+      ],
+      edges: [
+        { id: 'eS-R1', source: 'S', target: 'R1', data: { latency: 5, bandwidth: 200 } },
+        { id: 'eR1-T', source: 'R1', target: 'T', data: { latency: 5, bandwidth: 200 } }, // Path S-R1-T (Total Latency: 10)
+        { id: 'eS-R2', source: 'S', target: 'R2', data: { latency: 8, bandwidth: 150 } },
+        { id: 'eR2-T', source: 'R2', target: 'T', data: { latency: 8, bandwidth: 150 } }, // Path S-R2-T (Total Latency: 16)
+        { id: 'eS-R3', source: 'S', target: 'R3', data: { latency: 7, bandwidth: 100 } },
+        { id: 'eR3-R2', source: 'R3', target: 'R2', data: { latency: 7, bandwidth: 120 } }, // Path S-R3-R2-T (Total Latency S->R3->R2->T = 7+7+8 = 22)
+         // Added direct edge from R3 to T to make R3 a more viable alternative intermediate for S->R3->T
+        { id: 'eR3-T', source: 'R3', target: 'T', data: { latency: 12, bandwidth: 100 } }, // Path S-R3-T (Total Latency S->R3->T = 7+12 = 19)
+      ].map(e => ({ ...e, type: 'default', markerEnd: { type: MarkerType.ArrowClosed } })),
+    }
   },
 ];
 
   
+
+    
