@@ -247,17 +247,22 @@ body {
 .underline-animate::after {
   content: '';
   position: absolute;
-  width: 0;
+  width: 0; /* Initial width is 0 */
   height: 2px; /* Underline thickness */
-  bottom: -4px; /* Distance from text, adjust as needed */
-  left: 0;
+  bottom: -4px; /* Distance from text */
+  left: 0; /* Start from the left */
   background-color: hsl(var(--accent-raw-hsl)); /* Color of the underline */
-  animation: draw-underline 1.5s ease-out forwards;
-  animation-delay: 0.5s; /* Start animation after a brief delay */
+  animation-name: draw-underline;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0.5s; /* Initial delay before animation starts */
+  animation-iteration-count: infinite;
+  animation-direction: alternate; /* Makes it go forwards then backwards */
 }
 
 @keyframes draw-underline {
-  to {
+  /* from 0% width is implicitly the initial state 'width: 0;' */
+  100% { /* The state at the end of one forward animation cycle */
     width: 100%;
   }
 }
