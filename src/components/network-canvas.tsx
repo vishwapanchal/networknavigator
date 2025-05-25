@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -20,7 +20,7 @@ import 'reactflow/dist/style.css';
 import { useNetwork } from '@/context/network-context';
 import CustomNode from './custom-node';
 import { Button } from './ui/button';
-import { Play, Plus, Trash2 } from 'lucide-react';
+import { Play, Plus, Trash2, Maximize, Minimize } from 'lucide-react'; // Added Maximize, Minimize
 import {
   Select,
   SelectContent,
@@ -48,6 +48,7 @@ export function NetworkCanvas() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const onConnect = useCallback(
     (params: Connection | Edge) =>
@@ -94,6 +95,7 @@ export function NetworkCanvas() {
           queueSize: 0,
           role: 'sensor', // Default role
           isSelected: false,
+          isFailed: false,
         },
       };
 
@@ -172,6 +174,7 @@ export function NetworkCanvas() {
         queueSize: 0,
         role: 'sensor',
         isSelected: false,
+        isFailed: false,
       },
     };
     setNodes((nds) => nds.concat(newNode));
@@ -187,6 +190,30 @@ export function NetworkCanvas() {
        }
     }
   };
+
+  const handleToggleFullscreen = useCallback(() => {
+    if (!reactFlowWrapper.current) return;
+
+    if (!document.fullscreenElement) {
+      reactFlowWrapper.current.requestFullscreen().catch(err => {
+        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
 
   return (
     <div className="flex-grow h-2/3 relative" ref={reactFlowWrapper}>
@@ -204,13 +231,12 @@ export function NetworkCanvas() {
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }} // Increased padding for a more "zoomed out" initial view
+        fitViewOptions={{ padding: 0.3 }}
         className="bg-background"
       >
         <Controls />
-        {/* <MiniMap nodeStrokeWidth={3} zoomable pannable /> */}
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-        <Panel position="top-left" className="flex gap-2 p-2">
+        <Panel position="top-left" className="flex gap-2 p-2 flex-wrap">
            <Select onValueChange={handleExampleChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Load Example" />
@@ -230,6 +256,10 @@ export function NetworkCanvas() {
           </Button>
           <Button variant="default" size="sm" onClick={runSimulation}>
              <Play className="mr-2 h-4 w-4" /> Run Simulation
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleToggleFullscreen}>
+            {isFullscreen ? <Minimize className="mr-2 h-4 w-4" /> : <Maximize className="mr-2 h-4 w-4" />}
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           </Button>
         </Panel>
       </ReactFlow>
