@@ -10,7 +10,7 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
-  const taglineText = "Structuring the Invisible."; // Ensured this is the exact string
+  const taglineText = "Structuring the Invisible.";
 
   return (
     <NetworkProvider>
@@ -31,14 +31,10 @@ const Home: NextPage = () => {
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
-          {/* Tagline with typing, no glitch */}
-          <TypingGlitchTagline
-            text={taglineText}
-            className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em]"
-            typingEnabled={true}
-            glitchEnabled={false}
-            typingSpeed={70}
-          />
+          {/* Static Tagline with glow */}
+          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em]">
+            {taglineText}
+          </p>
         </header>
 
         {/* Main Content Area */}
