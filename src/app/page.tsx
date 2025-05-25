@@ -10,7 +10,7 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
-  const taglineText = "Structuring the Invisible.";
+  const taglineText = "Structuring the Invisible."; // Ensured this is the exact string
 
   return (
     <NetworkProvider>
@@ -20,13 +20,13 @@ const Home: NextPage = () => {
           {/* Title with glitch, no typing */}
           <TypingGlitchTagline
             text={titleText}
-            className="text-xl md:text-2xl font-bold text-glow-primary block" // Added block for h1-like behavior
-            typingEnabled={false}   // Typing disabled for title
-            glitchEnabled={true}    // Glitch enabled for title
-            typingSpeed={50}        // Speed doesn't matter if typingEnabled is false
-            glitchIntervalMin={500} // More frequent glitch for title
+            className="text-xl md:text-2xl font-bold text-glow-primary block"
+            typingEnabled={false}
+            glitchEnabled={true}
+            typingSpeed={50}
+            glitchIntervalMin={500}
             glitchIntervalMax={1500}
-            glitchDuration={350}     // Slightly longer glitch duration for title
+            glitchDuration={350}
           />
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
@@ -35,9 +35,9 @@ const Home: NextPage = () => {
           <TypingGlitchTagline
             text={taglineText}
             className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em]"
-            typingEnabled={true}    // Typing enabled for tagline
-            glitchEnabled={false}   // Glitch disabled for tagline
-            typingSpeed={70}        // Standard typing speed for tagline
+            typingEnabled={true}
+            glitchEnabled={false}
+            typingSpeed={70}
           />
         </header>
 
