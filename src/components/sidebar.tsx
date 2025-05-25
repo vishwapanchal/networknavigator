@@ -6,7 +6,7 @@ import { useNetwork } from '@/context/network-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea'; // Import Textarea
+import { Textarea } from '@/components/ui/textarea'; 
 import {
   Select,
   SelectContent,
@@ -16,10 +16,12 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from './ui/button';
-import { Save, Trash2, Type, BatteryCharging, ArrowRightLeft, Layers3, Zap, Clock, LayoutGrid } from 'lucide-react'; // Added LayoutGrid
+import { Save, Trash2, Type, BatteryCharging, ArrowRightLeft, Layers3, Zap, Clock, LayoutGrid, ShieldAlert, ShieldCheck } from 'lucide-react'; // Added ShieldAlert, ShieldCheck
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import type { Node, Edge } from 'reactflow';
+import type { NodeData } from '@/context/network-context';
+
 
 interface SidebarProps {}
 
@@ -36,6 +38,8 @@ export function Sidebar({}: SidebarProps) {
     matrixInput,
     setMatrixInput,
     generateNetworkFromMatrix,
+    toggleNodeFailState, // Added
+    nodes: networkNodes, // Renamed to avoid conflict with reactflow Node type
   } = useNetwork();
 
   const [localData, setLocalData] = useState<any>({});
@@ -77,6 +81,8 @@ export function Sidebar({}: SidebarProps) {
 
   const isNode = selectedElement && 'position' in selectedElement;
   const isEdge = selectedElement && !isNode;
+  const selectedNodeData = isNode ? (selectedElement as Node<NodeData>).data : null;
+
 
   const totalWeight = Object.values(simulationParams.weights).reduce((sum, w) => sum + w, 0);
 
@@ -107,6 +113,7 @@ export function Sidebar({}: SidebarProps) {
                         value={localData?.label || ''}
                         onChange={(e) => handleInputChange('label', e.target.value)}
                         className="text-sm"
+                        disabled={selectedNodeData?.isFailed}
                       />
                     </div>
                     <div className="space-y-2">
@@ -119,6 +126,7 @@ export function Sidebar({}: SidebarProps) {
                         min={0}
                         max={100}
                         className="text-sm"
+                        disabled={selectedNodeData?.isFailed}
                       />
                     </div>
                     <div className="space-y-2">
@@ -130,6 +138,7 @@ export function Sidebar({}: SidebarProps) {
                         onChange={(e) => handleInputChange('queueSize', parseInt(e.target.value, 10))}
                         min={0}
                          className="text-sm"
+                         disabled={selectedNodeData?.isFailed}
                       />
                     </div>
                     <div className="space-y-2">
@@ -137,6 +146,7 @@ export function Sidebar({}: SidebarProps) {
                       <Select
                         value={localData?.role || 'sensor'}
                         onValueChange={(value) => handleSelectChange('role', value)}
+                        disabled={selectedNodeData?.isFailed}
                       >
                         <SelectTrigger id="role" className="w-full text-sm">
                           <SelectValue placeholder="Select role" />
@@ -147,6 +157,17 @@ export function Sidebar({}: SidebarProps) {
                           <SelectItem value="gateway">Gateway</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Button
+                            onClick={() => toggleNodeFailState(selectedElement.id)}
+                            variant={selectedNodeData?.isFailed ? "secondary" : "destructive"}
+                            size="sm"
+                            className="w-full"
+                        >
+                            {selectedNodeData?.isFailed ? <ShieldCheck className="mr-2 h-4 w-4" /> : <ShieldAlert className="mr-2 h-4 w-4" />}
+                            {selectedNodeData?.isFailed ? "Restore Node" : "Fail Node"}
+                        </Button>
                     </div>
                   </>
                 )}
@@ -178,7 +199,7 @@ export function Sidebar({}: SidebarProps) {
                  )}
               </div>
               <div className="flex space-x-2 mt-4">
-                 <Button onClick={handleSave} size="sm">
+                 <Button onClick={handleSave} size="sm" disabled={isNode && selectedNodeData?.isFailed}>
                    <Save className="mr-2 h-4 w-4" /> Save Changes
                  </Button>
                  <Button variant="destructive" size="sm" onClick={deleteSelectedElement}>
@@ -222,7 +243,7 @@ export function Sidebar({}: SidebarProps) {
                    <SelectValue placeholder="Select source node" />
                  </SelectTrigger>
                  <SelectContent>
-                   {useNetwork().nodes.map((node) => (
+                   {networkNodes.filter(node => !node.data.isFailed).map((node) => (
                      <SelectItem key={node.id} value={node.id}>{node.data.label || node.id}</SelectItem>
                    ))}
                  </SelectContent>
@@ -238,14 +259,14 @@ export function Sidebar({}: SidebarProps) {
                    <SelectValue placeholder="Select target node" />
                  </SelectTrigger>
                  <SelectContent>
-                    {useNetwork().nodes.map((node) => (
+                    {networkNodes.filter(node => !node.data.isFailed).map((node) => (
                      <SelectItem key={node.id} value={node.id}>{node.data.label || node.id}</SelectItem>
                    ))}
                  </SelectContent>
                </Select>
              </div>
 
-            {simulationParams.algorithm === 'adaptive' || simulationParams.algorithm === 'compare' ? (
+            {(simulationParams.algorithm === 'adaptive' || simulationParams.algorithm === 'compare') && (
               <div className="space-y-4 border p-3 rounded-md bg-secondary/50">
                  <h4 className="font-medium text-sm">Adaptive Algorithm Weights (α, β, γ)</h4>
                  <p className="text-xs text-muted-foreground">Adjust the weights (sum must be 1). Current Sum: {totalWeight.toFixed(2)}</p>
@@ -293,7 +314,7 @@ export function Sidebar({}: SidebarProps) {
                     <p className="text-xs text-destructive font-medium">Warning: Weights do not sum to 1.</p>
                  )}
               </div>
-            ): null}
+            )}
           </div>
 
           <Separator className="my-6" />
@@ -339,3 +360,4 @@ export function Sidebar({}: SidebarProps) {
   );
 }
 
+    
