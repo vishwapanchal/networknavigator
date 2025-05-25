@@ -12,11 +12,11 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
   const taglineText = "Structuring the Invisible.";
-  const headerBackgroundImageUrl = 'https://t4.ftcdn.net/jpg/04/33/61/77/360_F_433617782_NQqvkrU35Y6ZIuzwMadUGUx3Ag5ZfDHs.jpg'; // Updated image URL
+  const headerBackgroundImageUrl = 'https://images6.alphacoders.com/317/317353.jpg'; // Updated image URL
 
   return (
     <NetworkProvider>
-      <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
+      <div className="flex flex-col h-screen w-screen overflow-hidden">
         {/* Title, Credits, and Tagline Area */}
         <header
           className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative bg-cover bg-center"
@@ -59,7 +59,7 @@ const Home: NextPage = () => {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex flex-1 overflow-hidden"> {/* This row contains Sidebar and the main canvas/metrics area */}
+        <div className="flex flex-1 overflow-hidden bg-background/80 backdrop-blur-sm"> {/* Main content area with semi-transparent theme background and blur */}
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden"> {/* This column contains Canvas and Metrics */}
             <NetworkCanvas />

@@ -31,7 +31,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 't4.ftcdn.net', // Added new hostname for header background
+        hostname: 't4.ftcdn.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't3.ftcdn.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images6.alphacoders.com', // Added new hostname for header background
         port: '',
         pathname: '/**',
       }
