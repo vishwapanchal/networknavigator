@@ -19,7 +19,7 @@ const Home: NextPage = () => {
         {/* Title, Credits, and Tagline Area */}
         <header className="p-4 border-b border-border/50 text-center shadow-lg bg-card/80 backdrop-blur-sm relative"> {/* Added relative positioning */}
           {/* Logo */}
-          <div className="absolute top-2 left-2 md:top-4 md:left-4">
+          <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10"> {/* Added z-10 */}
             <Image
               src="/rv_logo.png" // Path relative to the 'public' directory
               alt="RV College Logo"
