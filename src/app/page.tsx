@@ -12,7 +12,7 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
   const taglineText = "Structuring the Invisible.";
-  const headerBackgroundImageUrl = 'https://static.vecteezy.com/system/resources/thumbnails/020/667/228/small_2x/circuit-technology-background-with-abstract-futuristic-technology-and-computer-electronic-design-vector.jpg'; // Updated image URL
+  const headerBackgroundImageUrl = 'https://png.pngtree.com/background/20210715/original/pngtree-abstract-futuristic-circuit-board-illustration-high-computer-technology-background-design-picture-image_1261001.jpg'; // Updated image URL
 
   return (
     <NetworkProvider>
