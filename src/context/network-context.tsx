@@ -2,13 +2,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import {
-  useNodesState,
-  useEdgesState,
+import type {
   Node,
   Edge,
   OnNodesChange,
   OnEdgesChange,
+} from 'reactflow';
+import {
+  useNodesState,
+  useEdgesState,
   applyNodeChanges,
   applyEdgeChanges,
   MarkerType,
@@ -93,6 +95,47 @@ const initialEdges: Edge<EdgeData>[] = exampleScenarios[0].data.edges.map(e => (
     style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
     animated: false,
 }));
+
+// Helper function for BFS pathfinding
+const findPathBFS = (
+  sourceId: string,
+  targetId: string,
+  allNodes: Node<NodeData>[],
+  allEdges: Edge<EdgeData>[]
+): string[] => {
+  if (!sourceId || !targetId) return [];
+
+  const adj: Record<string, string[]> = {};
+  allNodes.forEach(node => adj[node.id] = []);
+  allEdges.forEach(edge => {
+    // Assuming undirected for basic path finding for visualization
+    if (adj[edge.source] === undefined) adj[edge.source] = [];
+    if (adj[edge.target] === undefined) adj[edge.target] = [];
+    adj[edge.source].push(edge.target);
+    adj[edge.target].push(edge.source);
+  });
+
+  const queue: string[][] = [[sourceId]];
+  const visited = new Set<string>([sourceId]);
+
+  while (queue.length > 0) {
+    const currentPath = queue.shift()!;
+    const currentNodeId = currentPath[currentPath.length - 1];
+
+    if (currentNodeId === targetId) {
+      return currentPath; // Found path
+    }
+
+    (adj[currentNodeId] || []).forEach(neighborId => {
+      if (!visited.has(neighborId)) {
+        visited.add(neighborId);
+        const newPath = [...currentPath, neighborId];
+        queue.push(newPath);
+      }
+    });
+  }
+  return []; // No path found
+};
 
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -352,19 +395,26 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const targetId = simulationParams.targetNode!;
         const { weights } = simulationParams;
 
-        // Attempt to find a direct edge first
-        const directEdge = edges.find(edge =>
-            (edge.source === sourceId && edge.target === targetId) ||
-            (edge.source === targetId && edge.target === sourceId) // Consider undirected for path finding purpose
-        );
-
         if (algo === 'adaptive') {
-            let bestAdaptivePath: string[] = directEdge ? [sourceId, targetId] : [];
-            let minCost = directEdge ? (directEdge.data?.latency || 0) * weights.alpha : Infinity; // Initial cost if direct path exists
+            let bestAdaptivePath: string[] = [];
+            let minCost = Infinity;
 
             const sourceNodeData = nodes.find(n => n.id === sourceId)?.data;
             const targetNodeData = nodes.find(n => n.id === targetId)?.data;
 
+            // Evaluate direct path first
+            const directEdge = edges.find(edge =>
+                (edge.source === sourceId && edge.target === targetId) ||
+                (edge.source === targetId && edge.target === sourceId)
+            );
+
+            if (directEdge?.data && sourceNodeData && targetNodeData) {
+                // Simplified cost for direct path (primarily latency based for this mock)
+                const directPathCost = (directEdge.data.latency * weights.alpha);
+                minCost = directPathCost;
+                bestAdaptivePath = [sourceId, targetId];
+            }
+            
             if (sourceNodeData && targetNodeData) {
                  // Evaluate 2-hop paths
                 const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
@@ -383,14 +433,9 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         const intermediateBattery = intermediateNode.data.battery;
                         const intermediateQueue = intermediateNode.data.queueSize;
                         
-                        // Cost calculation: lower is better
-                        // Latency cost: higher latency = higher cost
                         const latencyCost = weights.alpha * pathLatency;
-                        // Battery cost: lower battery = higher cost. We invert it (100 - battery) and normalize if needed.
-                        // Let's assume battery is 0-100. (100 - battery) can be a proxy for "unhealthiness".
                         const batteryUnhealthiness = 100 - intermediateBattery;
                         const batteryCost = weights.beta * batteryUnhealthiness;
-                        // Queue cost: higher queue size = higher cost
                         const queueCost = weights.gamma * intermediateQueue;
                         
                         const totalCost = latencyCost + batteryCost + queueCost;
@@ -406,20 +451,23 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 
         } else { // For Dijkstra, Bellman-Ford (simple mock path)
+            const directEdge = edges.find(edge =>
+                (edge.source === sourceId && edge.target === targetId) ||
+                (edge.source === targetId && edge.target === sourceId)
+            );
             if (directEdge) {
                  currentMockPath = [sourceId, targetId];
             } else {
-                 // Try to find a 2-hop path if no direct edge
                 const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
                 let foundTwoHop = false;
                 for (const intermediateNode of intermediateNodeCandidates) {
-                    const edge1Exists = edges.some(edge =>
+                    const edge1Exists = edges.some(edge => // Corrected typo: 'e' to 'edge'
                         (edge.source === sourceId && edge.target === intermediateNode.id) ||
-                        (edge.source === intermediateNode.id && edge.target === sourceId)
+                        (edge.source === intermediateNode.id && edge.target === sourceId) // Corrected typo: 'e' to 'edge'
                     );
-                    const edge2Exists = edges.some(edge =>
+                    const edge2Exists = edges.some(edge => // Corrected typo: 'e' to 'edge'
                         (edge.source === intermediateNode.id && edge.target === targetId) ||
-                        (edge.source === targetId && edge.target === intermediateNode.id)
+                        (edge.source === targetId && edge.target === intermediateNode.id) // Corrected typo: 'e' to 'edge'
                     );
                     if (edge1Exists && edge2Exists) {
                         currentMockPath = [sourceId, intermediateNode.id, targetId];
@@ -428,7 +476,9 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     }
                 }
                 if (!foundTwoHop) {
-                    currentMockPath = [sourceId, targetId]; // Default to source-target, may not highlight if no direct edge
+                    // If no 1-hop or 2-hop, try BFS
+                    const bfsPath = findPathBFS(sourceId, targetId, nodes, edges);
+                    currentMockPath = bfsPath.length > 0 ? bfsPath : [sourceId, targetId];
                 }
             }
         }
@@ -453,14 +503,14 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 currentMockPath.slice(0, -1).reduce((acc, curr, idx) => {
                     const nextNode = currentMockPath[idx+1];
                     const edge = edges.find(e => (e.source === curr && e.target === nextNode) || (e.source === nextNode && e.target === curr));
-                    return acc + (edge?.data?.latency || 30); // Default high latency if edge not found for some reason
+                    return acc + (edge?.data?.latency || 30); 
                 }, 0)
-                : 30; // Default if path is just source-target with no actual edge in currentMockPath segment
+                : (edges.find(e => (e.source === sourceId && e.target === targetId) || (e.source === targetId && e.target === sourceId))?.data?.latency || 30);
              const avgPathLatency = pathLatencySum / Math.max(1, currentMockPath.length - 1);
 
-             latencyFactor = avgPathLatency / 20; // Normalize against a baseline latency
-             energyFactor = 1.0 - (weights.beta * 0.2) + (weights.gamma * 0.1); // Beta reduces, gamma slightly increases
-             deliveryFactor = 0.9 + (weights.alpha * 0.05) - (weights.gamma * 0.1); // Alpha slightly improves, gamma penalizes
+             latencyFactor = avgPathLatency / 20; 
+             energyFactor = 1.0 - (weights.beta * 0.2) + (weights.gamma * 0.1); 
+             deliveryFactor = 0.9 + (weights.alpha * 0.05) - (weights.gamma * 0.1);
              lifetimeFactor = 0.85 + (weights.beta * 0.25);
         }
 
@@ -488,9 +538,9 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
      if (resultForDisplay && resultForDisplay.path.length > 1) {
         for (let i = 0; i < resultForDisplay.path.length - 1; i++) {
-            const source = resultForDisplay.path[i];
-            const target = resultForDisplay.path[i+1];
-            const edge = edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source));
+            const pathSource = resultForDisplay.path[i];
+            const pathTarget = resultForDisplay.path[i+1];
+            const edge = edges.find(e => (e.source === pathSource && e.target === pathTarget) || (e.source === pathTarget && e.target === pathSource));
             if (edge) {
                 pathEdgesToHighlight.add(edge.id);
             }
@@ -555,3 +605,5 @@ export const useNetwork = (): NetworkContextType => {
   return context;
 };
 
+
+    
