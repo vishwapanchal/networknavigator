@@ -12,7 +12,7 @@ import { TypingGlitchTagline } from '@/components/typing-glitch-tagline';
 const Home: NextPage = () => {
   const titleText = "Optimizing Data Flow in IoT Sensor Networks Using Graph Theory";
   const taglineText = "Structuring the Invisible.";
-  const headerBackgroundImageUrl = 'https://t4.ftcdn.net/jpg/04/33/61/77/360_F_433617782_NQqvkrU35Y6ZIuzwMadUGUx3Ag5ZfDHs.jpg'; // Updated image URL
+  const headerBackgroundImageUrl = 'https://t4.ftcdn.net/jpg/04/33/61/77/360_F_433617782_NQqvkrU35Y6ZIuzwMadUGUx3Ag5ZfDHs.jpg';
 
   return (
     <NetworkProvider>
@@ -49,7 +49,7 @@ const Home: NextPage = () => {
               glitchIntervalMax={1500}
               glitchDuration={350}
             />
-            <p className="text-xs md:text-sm text-muted-foreground mt-1 text-glow-accent">
+            <p className="text-xs md:text-sm text-muted-foreground mt-1">
               Collaboratively engineered by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
             </p>
             <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em] underline-animate">
