@@ -103,16 +103,17 @@ const findPathBFS = (
   allNodes: Node<NodeData>[],
   allEdges: Edge<EdgeData>[]
 ): string[] => {
-  if (!sourceId || !targetId) return [];
+  if (!sourceId || !targetId || sourceId === targetId) return [];
 
   const adj: Record<string, string[]> = {};
   allNodes.forEach(node => adj[node.id] = []);
   allEdges.forEach(edge => {
     // Assuming undirected for basic path finding for visualization
-    if (adj[edge.source] === undefined) adj[edge.source] = [];
-    if (adj[edge.target] === undefined) adj[edge.target] = [];
-    adj[edge.source].push(edge.target);
-    adj[edge.target].push(edge.source);
+    // Only add if both source and target are in adj (i.e., are valid nodes)
+    if (adj[edge.source] !== undefined && adj[edge.target] !== undefined) {
+        adj[edge.source].push(edge.target);
+        adj[edge.target].push(edge.source);
+    }
   });
 
   const queue: string[][] = [[sourceId]];
@@ -239,7 +240,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
      }));
 
     setNodes(typedNodes);
-    setEdges(styledMarkedEdges);
+    setEdges(styledMarkedEdges); // Apply default styling on load
     setSelectedElement(null);
     setSimulationResults(null);
 
@@ -402,22 +403,26 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const sourceNodeData = nodes.find(n => n.id === sourceId)?.data;
             const targetNodeData = nodes.find(n => n.id === targetId)?.data;
 
-            // Evaluate direct path first
-            const directEdge = edges.find(edge =>
-                (edge.source === sourceId && edge.target === targetId) ||
-                (edge.source === targetId && edge.target === sourceId)
-            );
+            // Evaluate direct path first if source and target are different
+            if (sourceId !== targetId) {
+                const directEdge = edges.find(edge =>
+                    (edge.source === sourceId && edge.target === targetId) ||
+                    (edge.source === targetId && edge.target === sourceId)
+                );
 
-            if (directEdge?.data && sourceNodeData && targetNodeData) {
-                // Simplified cost for direct path (primarily latency based for this mock)
-                const directPathCost = (directEdge.data.latency * weights.alpha);
-                minCost = directPathCost;
-                bestAdaptivePath = [sourceId, targetId];
+                if (directEdge?.data && sourceNodeData && targetNodeData) {
+                    const directPathCost = (directEdge.data.latency * weights.alpha); // Simplified cost
+                    minCost = directPathCost;
+                    bestAdaptivePath = [sourceId, targetId];
+                }
+            } else if (sourceId === targetId) { // If source and target are same, path is just the node itself
+                 bestAdaptivePath = [sourceId];
+                 minCost = 0; // No cost for same node path
             }
             
-            if (sourceNodeData && targetNodeData) {
-                 // Evaluate 2-hop paths
-                const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
+            // Evaluate 2-hop paths only if source and target are different
+            if (sourceId !== targetId && sourceNodeData && targetNodeData) {
+                 const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
                 for (const intermediateNode of intermediateNodeCandidates) {
                     const edge1 = edges.find(e =>
                         (e.source === sourceId && e.target === intermediateNode.id) ||
@@ -434,7 +439,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         const intermediateQueue = intermediateNode.data.queueSize;
                         
                         const latencyCost = weights.alpha * pathLatency;
-                        const batteryUnhealthiness = 100 - intermediateBattery;
+                        const batteryUnhealthiness = 100 - intermediateBattery; // Higher is worse
                         const batteryCost = weights.beta * batteryUnhealthiness;
                         const queueCost = weights.gamma * intermediateQueue;
                         
@@ -447,38 +452,51 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     }
                 }
             }
-             currentMockPath = bestAdaptivePath.length > 0 ? bestAdaptivePath : [sourceId, targetId];
+            
+            currentMockPath = bestAdaptivePath;
+            // If adaptive 1-hop/2-hop logic didn't find a path, and source/target are different, try BFS
+            if (currentMockPath.length === 0 && sourceId !== targetId) {
+                const bfsPath = findPathBFS(sourceId, targetId, nodes, edges);
+                currentMockPath = bfsPath.length > 0 ? bfsPath : [sourceId, targetId]; // Default to direct if BFS fails
+            } else if (currentMockPath.length === 0 && sourceId === targetId) {
+                 currentMockPath = [sourceId]; // Path is just the node itself
+            }
 
 
-        } else { // For Dijkstra, Bellman-Ford (simple mock path)
-            const directEdge = edges.find(edge =>
-                (edge.source === sourceId && edge.target === targetId) ||
-                (edge.source === targetId && edge.target === sourceId)
-            );
-            if (directEdge) {
-                 currentMockPath = [sourceId, targetId];
+        } else { // For Dijkstra, Bellman-Ford (simple mock path with BFS fallback)
+             if (sourceId === targetId) {
+                currentMockPath = [sourceId]; // Path is just the node itself
             } else {
-                const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
-                let foundTwoHop = false;
-                for (const intermediateNode of intermediateNodeCandidates) {
-                    const edge1Exists = edges.some(edge => // Corrected typo: 'e' to 'edge'
-                        (edge.source === sourceId && edge.target === intermediateNode.id) ||
-                        (edge.source === intermediateNode.id && edge.target === sourceId) // Corrected typo: 'e' to 'edge'
-                    );
-                    const edge2Exists = edges.some(edge => // Corrected typo: 'e' to 'edge'
-                        (edge.source === intermediateNode.id && edge.target === targetId) ||
-                        (edge.source === targetId && edge.target === intermediateNode.id) // Corrected typo: 'e' to 'edge'
-                    );
-                    if (edge1Exists && edge2Exists) {
-                        currentMockPath = [sourceId, intermediateNode.id, targetId];
-                        foundTwoHop = true;
-                        break;
+                const directEdge = edges.find(edge =>
+                    (edge.source === sourceId && edge.target === targetId) ||
+                    (edge.source === targetId && edge.target === sourceId)
+                );
+                if (directEdge) {
+                     currentMockPath = [sourceId, targetId];
+                } else {
+                    // Try 2-hop
+                    let foundTwoHop = false;
+                    const intermediateNodeCandidates = nodes.filter(node => node.id !== sourceId && node.id !== targetId);
+                    for (const intermediateNode of intermediateNodeCandidates) {
+                        const edge1Exists = edges.some(edge =>
+                            (edge.source === sourceId && edge.target === intermediateNode.id) ||
+                            (edge.source === intermediateNode.id && edge.target === sourceId)
+                        );
+                        const edge2Exists = edges.some(edge =>
+                            (edge.source === intermediateNode.id && edge.target === targetId) ||
+                            (edge.source === targetId && edge.target === intermediateNode.id)
+                        );
+                        if (edge1Exists && edge2Exists) {
+                            currentMockPath = [sourceId, intermediateNode.id, targetId];
+                            foundTwoHop = true;
+                            break;
+                        }
                     }
-                }
-                if (!foundTwoHop) {
-                    // If no 1-hop or 2-hop, try BFS
-                    const bfsPath = findPathBFS(sourceId, targetId, nodes, edges);
-                    currentMockPath = bfsPath.length > 0 ? bfsPath : [sourceId, targetId];
+                     // If no 1-hop or 2-hop, try BFS
+                    if (!foundTwoHop) {
+                        const bfsPath = findPathBFS(sourceId, targetId, nodes, edges);
+                        currentMockPath = bfsPath.length > 0 ? bfsPath : [sourceId, targetId]; // Default to direct if BFS fails
+                    }
                 }
             }
         }
@@ -503,18 +521,20 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 currentMockPath.slice(0, -1).reduce((acc, curr, idx) => {
                     const nextNode = currentMockPath[idx+1];
                     const edge = edges.find(e => (e.source === curr && e.target === nextNode) || (e.source === nextNode && e.target === curr));
-                    return acc + (edge?.data?.latency || 30); 
+                    return acc + (edge?.data?.latency || 30); // Default latency if edge not found (e.g. for single node path)
                 }, 0)
-                : (edges.find(e => (e.source === sourceId && e.target === targetId) || (e.source === targetId && e.target === sourceId))?.data?.latency || 30);
+                : (sourceId === targetId ? 0 : (edges.find(e => (e.source === sourceId && e.target === targetId) || (e.source === targetId && e.target === sourceId))?.data?.latency || 30));
+             
              const avgPathLatency = pathLatencySum / Math.max(1, currentMockPath.length - 1);
 
-             latencyFactor = avgPathLatency / 20; 
+             latencyFactor = Math.max(0.1, avgPathLatency / 20); // Ensure latencyFactor is not too small or zero
              energyFactor = 1.0 - (weights.beta * 0.2) + (weights.gamma * 0.1); 
-             deliveryFactor = 0.9 + (weights.alpha * 0.05) - (weights.gamma * 0.1);
+             deliveryFactor = Math.min(1.0, 0.9 + (weights.alpha * 0.05) - (weights.gamma * 0.1)); // Ensure deliveryFactor <= 1
              lifetimeFactor = 0.85 + (weights.beta * 0.25);
         }
-
-        const pathLength = Math.max(1, currentMockPath.length -1);
+        
+        // Handle case where path is just a single node (source === target)
+        const pathLength = sourceId === targetId ? 0 : Math.max(1, currentMockPath.length -1);
         const baseEnergyPerHop = 10;
         const baseLatencyPerHop = 15;
 
@@ -522,10 +542,10 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
             algorithm: algo,
             path: currentMockPath,
             metrics: {
-                energyConsumption: Math.max(5, (baseEnergyPerHop * pathLength + Math.random() * 20) * energyFactor),
-                averageLatency: Math.max(5, (baseLatencyPerHop * pathLength + Math.random() * 10) * latencyFactor),
-                deliveryRatio: Math.min(1, Math.max(0, (0.85 + Math.random() * 0.15) * deliveryFactor)),
-                networkLifetime: Math.max(10, Math.floor((300 + Math.random() * 100) * lifetimeFactor / pathLength)),
+                energyConsumption: pathLength === 0 ? 0 : Math.max(5, (baseEnergyPerHop * pathLength + Math.random() * 20) * energyFactor),
+                averageLatency: pathLength === 0 ? 0 : Math.max(5, (baseLatencyPerHop * pathLength + Math.random() * 10) * latencyFactor),
+                deliveryRatio: pathLength === 0 ? 1 : Math.min(1, Math.max(0, (0.85 + Math.random() * 0.15) * deliveryFactor)),
+                networkLifetime: pathLength === 0 ? 500 : Math.max(10, Math.floor((300 + Math.random() * 100) * lifetimeFactor / Math.max(1,pathLength))),
             },
         };
     });
@@ -604,6 +624,3 @@ export const useNetwork = (): NetworkContextType => {
   }
   return context;
 };
-
-
-    
