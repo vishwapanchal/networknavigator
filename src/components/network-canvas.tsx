@@ -20,7 +20,7 @@ import 'reactflow/dist/style.css';
 import { useNetwork } from '@/context/network-context';
 import CustomNode from './custom-node';
 import { Button } from './ui/button';
-import { Play, Plus, Trash2, Maximize, Minimize } from 'lucide-react'; // Added Maximize, Minimize
+import { Play, Plus, Trash2, Maximize, Minimize } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -41,7 +41,7 @@ export function NetworkCanvas() {
     setEdges,
     onEdgesChange,
     setSelectedElement,
-    runSimulation,
+    runSimulation, // Directly use runSimulation
     clearNetwork,
     loadExample,
   } = useNetwork();
@@ -254,7 +254,7 @@ export function NetworkCanvas() {
           <Button variant="destructive" size="sm" onClick={clearNetwork}>
             <Trash2 className="mr-2 h-4 w-4" /> Clear All
           </Button>
-          <Button variant="default" size="sm" onClick={runSimulation}>
+          <Button variant="default" size="sm" onClick={runSimulation}> {/* Directly call runSimulation */}
              <Play className="mr-2 h-4 w-4" /> Run Simulation
           </Button>
           <Button variant="outline" size="sm" onClick={handleToggleFullscreen}>
@@ -266,3 +266,4 @@ export function NetworkCanvas() {
     </div>
   );
 }
+
