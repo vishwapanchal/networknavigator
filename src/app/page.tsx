@@ -23,8 +23,8 @@ const Home: NextPage = () => {
             <Image
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyawIRbc2YMupSsJT8UqUJmMJD4M4kWJ5CGg&s" // Updated image source
               alt="RV College Logo"
-              width={60} // Increased width
-              height={60} // Increased height
+              width={70} // Increased width
+              height={70} // Increased height
               className="rounded-full" // Optional: if you want a circular mask for a square logo
               priority // Prioritize loading the logo
             />
