@@ -1,6 +1,4 @@
 
-
-
 'use client';
 
 import React from 'react';
@@ -21,11 +19,11 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { BarChart, CartesianGrid, XAxis, YAxis, Bar, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, CartesianGrid, XAxis, YAxis, Bar, ResponsiveContainer } from 'recharts'; // Removed Tooltip, Legend as ChartTooltip/Legend are used
 import { ScrollArea } from './ui/scroll-area';
 
 export function PerformanceMetrics() {
-  const { simulationResults } = useNetwork();
+  const { simulationResults, simulationParams } = useNetwork();
 
   if (!simulationResults || simulationResults.length === 0) {
     return (
@@ -63,56 +61,62 @@ export function PerformanceMetrics() {
       <CardHeader className="p-4 pb-2">
         <CardTitle className="text-lg">Performance Metrics Comparison</CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow p-4 pt-0 flex flex-col lg:flex-row gap-4 overflow-hidden">
-        <div className="w-full lg:w-1/2 h-full">
-           <h4 className="text-sm font-medium mb-2 text-center">Metrics Overview</h4>
-           <ChartContainer config={chartConfig} className="h-[calc(100%-2rem)] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false}/>
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={10}/>
-                    <YAxis fontSize={10} tickMargin={5}/>
-                    <ChartTooltip
-                      content={<ChartTooltipContent indicator="dot" hideLabel />}
-                      cursor={false}
-                    />
-                    <ChartLegend content={<ChartLegendContent />} />
-                    <Bar dataKey="energy" fill="var(--color-energy)" radius={4} />
-                    <Bar dataKey="latency" fill="var(--color-latency)" radius={4} />
-                    <Bar dataKey="deliveryRatio" fill="var(--color-deliveryRatio)" radius={4} />
-                    <Bar dataKey="lifetime" fill="var(--color-lifetime)" radius={4} />
-                 </BarChart>
-              </ResponsiveContainer>
-           </ChartContainer>
-        </div>
-         <div className="w-full lg:w-1/2 h-full">
-           <h4 className="text-sm font-medium mb-2 text-center">Detailed Table</h4>
-           <ScrollArea className="h-[calc(100%-2rem)]">
-             <Table>
-               <TableHeader>
-                 <TableRow>
-                   <TableHead className="w-[100px]">Algorithm</TableHead>
-                   <TableHead className="text-right">Energy</TableHead>
-                   <TableHead className="text-right">Latency</TableHead>
-                   <TableHead className="text-right">Delivery %</TableHead>
-                   <TableHead className="text-right">Lifetime</TableHead>
-                 </TableRow>
-               </TableHeader>
-               <TableBody>
-                 {simulationResults.map((result) => (
-                   <TableRow key={result.algorithm}>
-                     <TableCell className="font-medium text-xs">{result.algorithm}</TableCell>
-                     <TableCell className="text-right text-xs">{result.metrics.energyConsumption.toFixed(2)}</TableCell>
-                     <TableCell className="text-right text-xs">{result.metrics.averageLatency.toFixed(2)}</TableCell>
-                     <TableCell className="text-right text-xs">{(result.metrics.deliveryRatio * 100).toFixed(1)}%</TableCell>
-                     <TableCell className="text-right text-xs">{result.metrics.networkLifetime}</TableCell>
+      <CardContent className="flex-grow p-4 pt-0 flex flex-col overflow-hidden">
+        {simulationParams.algorithm === 'compare' && simulationResults && simulationResults.length > 0 && (
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            (Canvas path displayed is for the <strong>Adaptive</strong> algorithm)
+          </p>
+        )}
+        <div className="flex flex-1 flex-col lg:flex-row gap-4 overflow-hidden">
+          <div className="w-full lg:w-1/2 h-full">
+             <h4 className="text-sm font-medium mb-2 text-center">Metrics Overview</h4>
+             <ChartContainer config={chartConfig} className="h-[calc(100%-2rem)] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                   <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false}/>
+                      <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} fontSize={10}/>
+                      <YAxis fontSize={10} tickMargin={5}/>
+                      <ChartTooltip
+                        content={<ChartTooltipContent indicator="dot" hideLabel />}
+                        cursor={false}
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="energy" fill="var(--color-energy)" radius={4} />
+                      <Bar dataKey="latency" fill="var(--color-latency)" radius={4} />
+                      <Bar dataKey="deliveryRatio" fill="var(--color-deliveryRatio)" radius={4} />
+                      <Bar dataKey="lifetime" fill="var(--color-lifetime)" radius={4} />
+                   </BarChart>
+                </ResponsiveContainer>
+             </ChartContainer>
+          </div>
+           <div className="w-full lg:w-1/2 h-full">
+             <h4 className="text-sm font-medium mb-2 text-center">Detailed Table</h4>
+             <ScrollArea className="h-[calc(100%-2rem)]">
+               <Table>
+                 <TableHeader>
+                   <TableRow>
+                     <TableHead className="w-[100px]">Algorithm</TableHead>
+                     <TableHead className="text-right">Energy</TableHead>
+                     <TableHead className="text-right">Latency</TableHead>
+                     <TableHead className="text-right">Delivery %</TableHead>
+                     <TableHead className="text-right">Lifetime</TableHead>
                    </TableRow>
-                 ))}
-               </TableBody>
-             </Table>
-           </ScrollArea>
-         </div>
-
+                 </TableHeader>
+                 <TableBody>
+                   {simulationResults.map((result) => (
+                     <TableRow key={result.algorithm}>
+                       <TableCell className="font-medium text-xs">{result.algorithm}</TableCell>
+                       <TableCell className="text-right text-xs">{result.metrics.energyConsumption.toFixed(2)}</TableCell>
+                       <TableCell className="text-right text-xs">{result.metrics.averageLatency.toFixed(2)}</TableCell>
+                       <TableCell className="text-right text-xs">{(result.metrics.deliveryRatio * 100).toFixed(1)}%</TableCell>
+                       <TableCell className="text-right text-xs">{result.metrics.networkLifetime}</TableCell>
+                     </TableRow>
+                   ))}
+                 </TableBody>
+               </Table>
+             </ScrollArea>
+           </div>
+        </div>
       </CardContent>
     </Card>
   );
