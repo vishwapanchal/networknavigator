@@ -237,3 +237,27 @@ body {
 .recharts-legend-item {
   color: hsl(var(--foreground)) !important;
 }
+
+/* Underline animation for tagline */
+.underline-animate {
+  position: relative;
+  display: inline-block; /* Or block, depending on desired layout with siblings */
+}
+
+.underline-animate::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px; /* Underline thickness */
+  bottom: -4px; /* Distance from text, adjust as needed */
+  left: 0;
+  background-color: hsl(var(--accent-raw-hsl)); /* Color of the underline */
+  animation: draw-underline 1.5s ease-out forwards;
+  animation-delay: 0.5s; /* Start animation after a brief delay */
+}
+
+@keyframes draw-underline {
+  to {
+    width: 100%;
+  }
+}

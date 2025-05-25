@@ -31,8 +31,8 @@ const Home: NextPage = () => {
           <p className="text-xs md:text-sm text-muted-foreground mt-1">
             Collaboratively developed by Vishwa Panchal – 1RV24IS413 & Yashvanth M U – 1RV23IS141
           </p>
-          {/* Static Tagline with glow */}
-          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em]">
+          {/* Static Tagline with glow and underline animation */}
+          <p className="text-sm md:text-md font-semibold text-glow-accent mt-2 min-h-[1.5em] md:min-h-[1.25em] underline-animate">
             {taglineText}
           </p>
         </header>
