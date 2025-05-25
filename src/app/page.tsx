@@ -21,7 +21,7 @@ const Home: NextPage = () => {
           {/* Logo */}
           <div className="absolute top-2 left-2 md:top-4 md:left-4 z-10"> {/* Added z-10 */}
             <Image
-              src="/rv_logo.png" // Path relative to the 'public' directory
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyawIRbc2YMupSsJT8UqUJmMJD4M4kWJ5CGg&s" // Updated image source
               alt="RV College Logo"
               width={60} // Adjust width as needed
               height={60} // Adjust height as needed
