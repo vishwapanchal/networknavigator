@@ -10,7 +10,7 @@ import type {
 } from 'reactflow';
 import {
   useNodesState,
-  useEdgesState, // Ensure this is imported
+  useEdgesState,
   applyNodeChanges,
   applyEdgeChanges,
   MarkerType,
@@ -96,7 +96,8 @@ const initialEdges: Edge<EdgeData>[] = exampleScenarios[0].data.edges.map(e => (
     animated: false,
 }));
 
-// Helper function for BFS pathfinding - respects failed nodes
+
+// Helper function for BFS pathfinding - respects failed nodes and edge direction
 const findPathBFS = (
   sourceId: string,
   targetId: string,
@@ -104,36 +105,35 @@ const findPathBFS = (
   allEdges: Edge<EdgeData>[]
 ): string[] => {
   if (!sourceId || !targetId) return [];
-  if (sourceId === targetId) return [sourceId]; // Path to self is just the node itself
+  if (sourceId === targetId) return [sourceId];
 
   const sourceNodeDetails = allNodes.find(n => n.id === sourceId);
   const targetNodeDetails = allNodes.find(n => n.id === targetId);
 
+  // Check if source or target itself is failed
   if (sourceNodeDetails?.data.isFailed || targetNodeDetails?.data.isFailed) {
-    return []; // Cannot path from/to a failed critical node
+    return [];
   }
 
   const adj: Record<string, string[]> = {};
   const validNodes = allNodes.filter(node => !node.data.isFailed);
   const validNodeIds = new Set(validNodes.map(n => n.id));
 
-
   if (!validNodeIds.has(sourceId) || !validNodeIds.has(targetId)) {
-    return []; // Source or target is not among valid (non-failed) nodes
+    return [];
   }
 
   validNodes.forEach(node => adj[node.id] = []);
 
   allEdges.forEach(edge => {
+    // Ensure both source and target of the edge are valid (not failed)
     const sourceIsValid = validNodeIds.has(edge.source);
     const targetIsValid = validNodeIds.has(edge.target);
 
     if (sourceIsValid && targetIsValid) {
-        // For BFS path discovery, treat edges as bidirectional for connectivity
+        // Strictly directed: only add edge.source -> edge.target
         if (!adj[edge.source]) adj[edge.source] = [];
-        if (!adj[edge.target]) adj[edge.target] = [];
         adj[edge.source].push(edge.target);
-        adj[edge.target].push(edge.source);
     }
   });
 
@@ -162,7 +162,7 @@ const findPathBFS = (
 
 export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes.map(n => ({...n, data: {...n.data, isFailed: n.data.isFailed || false}})));
-  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>(initialEdges); // Correct usage of useEdgesState
+  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeData>(initialEdges);
   const [selectedElement, setSelectedElement] = useState<Node<NodeData> | Edge<EdgeData> | null>(null);
   const [simulationParams, setSimulationParams] = useState<SimulationParams>({
     algorithm: 'adaptive',
@@ -176,46 +176,42 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [matrixSize, setMatrixSize] = useState<number>(3);
   const [matrixInput, setMatrixInput] = useState<string>('0,1,0\n0,0,1\n1,0,0');
 
-  // Effect to update source/target nodes if they become invalid (e.g., due to deletion or failure)
-    useEffect(() => {
+
+  useEffect(() => {
     const activeNodes = nodes.filter(n => !n.data.isFailed);
     const activeNodeIds = activeNodes.map(n => n.id);
 
     let newSourceNode = simulationParams.sourceNode;
     let newTargetNode = simulationParams.targetNode;
-    let changed = false;
+    let paramsChanged = false;
 
     if (activeNodeIds.length === 0) {
-        if (newSourceNode !== null || newTargetNode !== null) {
-            newSourceNode = null;
-            newTargetNode = null;
-            changed = true;
-        }
+      if (newSourceNode !== null) { newSourceNode = null; paramsChanged = true; }
+      if (newTargetNode !== null) { newTargetNode = null; paramsChanged = true; }
     } else {
-        if (newSourceNode === null || !activeNodeIds.includes(newSourceNode)) {
-            newSourceNode = activeNodeIds[0];
-            changed = true;
+      if (newSourceNode === null || !activeNodeIds.includes(newSourceNode)) {
+        newSourceNode = activeNodeIds[0];
+        paramsChanged = true;
+      }
+      if (newTargetNode === null || !activeNodeIds.includes(newTargetNode)) {
+        newTargetNode = activeNodeIds.length > 1 ? activeNodeIds.find(id => id !== newSourceNode) || activeNodeIds[0] : newSourceNode;
+        paramsChanged = true;
+      }
+      if (newSourceNode === newTargetNode && activeNodeIds.length > 1) {
+        const alternativeTarget = activeNodeIds.find(id => id !== newSourceNode);
+        if (alternativeTarget) {
+          newTargetNode = alternativeTarget;
+          paramsChanged = true;
         }
-        if (newTargetNode === null || !activeNodeIds.includes(newTargetNode)) {
-            newTargetNode = activeNodeIds.find(id => id !== newSourceNode) || newSourceNode;
-            changed = true;
-        }
-        // Ensure target is different from source if possible
-        if (newSourceNode === newTargetNode && activeNodeIds.length > 1) {
-            const alternativeTarget = activeNodeIds.find(id => id !== newSourceNode);
-            if (alternativeTarget) {
-                newTargetNode = alternativeTarget;
-                changed = true;
-            }
-        }
+      }
     }
 
-    if (changed) {
-        setSimulationParams(prev => ({
-            ...prev,
-            sourceNode: newSourceNode,
-            targetNode: newTargetNode,
-        }));
+    if (paramsChanged) {
+      setSimulationParams(prev => ({
+        ...prev,
+        sourceNode: newSourceNode,
+        targetNode: newTargetNode,
+      }));
     }
   }, [nodes, simulationParams.sourceNode, simulationParams.targetNode, setSimulationParams]);
 
@@ -250,6 +246,13 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     })));
   }, [setEdges]);
 
+  const handleSimulationStateChange = useCallback((messageTitle: string, messageDescription: string, variant: 'default' | 'destructive' = 'default') => {
+    clearVisualPath();
+    setSimulationResults(null);
+    toast({ title: messageTitle, description: messageDescription, variant });
+  }, [clearVisualPath, toast, setSimulationResults]);
+
+
   const toggleNodeFailState = useCallback((nodeId: string) => {
     let nodeLabel = nodeId;
     setNodes(nds => nds.map(n => {
@@ -259,33 +262,24 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       return n;
     }));
-
     const nodeNowFailed = !nodes.find(n => n.id === nodeId)?.data.isFailed; // State after toggle
-
-    clearVisualPath();
-    setSimulationResults(null);
-
-    toast({
-      title: 'Node State Changed',
-      description: `Node ${nodeLabel} is now ${nodeNowFailed ? 'FAILED' : 'RESTORED'}. Run simulation to see updated paths.`,
-      variant: nodeNowFailed ? 'destructive' : 'default',
-    });
-
-    // Update selected element if it's the one being toggled
+    handleSimulationStateChange(
+      'Node State Changed',
+      `Node ${nodeLabel} is now ${nodeNowFailed ? 'FAILED' : 'RESTORED'}. Run simulation to see updated paths.`,
+      nodeNowFailed ? 'destructive' : 'default'
+    );
     if (selectedElement && 'position' in selectedElement && selectedElement.id === nodeId) {
       setSelectedElement(prev => prev ? {...prev, data: {...prev.data, isFailed: nodeNowFailed}} : null);
     }
-  }, [nodes, setNodes, clearVisualPath, toast, selectedElement, setSimulationResults]);
+  }, [nodes, setNodes, handleSimulationStateChange, selectedElement]);
 
 
   const clearNetwork = useCallback(() => {
     setNodes([]);
     setEdges([]);
     setSelectedElement(null);
-    clearVisualPath();
-    setSimulationResults(null);
-    toast({ title: 'Network Cleared', description: 'Canvas has been reset.' });
-  }, [setNodes, setEdges, clearVisualPath, toast, setSimulationResults]);
+    handleSimulationStateChange('Network Cleared', 'Canvas has been reset.');
+  }, [setNodes, setEdges, handleSimulationStateChange]);
 
   const loadExample = useCallback((data: { nodes: Node<NodeData>[], edges: Edge<EdgeData>[] }) => {
      const typedNodes = data.nodes.map(n => ({ ...n, type: 'custom', data: {...n.data, isFailed: n.data.isFailed || false} }));
@@ -296,14 +290,11 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
          style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 },
          animated: false,
      }));
-
     setNodes(typedNodes);
     setEdges(styledMarkedEdges);
     setSelectedElement(null);
-    clearVisualPath();
-    setSimulationResults(null);
-    toast({ title: 'Example Loaded', description: 'Network topology updated. Run simulation to see paths.' });
-  }, [setNodes, setEdges, clearVisualPath, toast, setSimulationResults]);
+    handleSimulationStateChange('Example Loaded', 'Network topology updated. Run simulation to see paths.');
+  }, [setNodes, setEdges, handleSimulationStateChange]);
 
 
   const deleteSelectedElement = useCallback(() => {
@@ -311,7 +302,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
        toast({ title: 'No element selected', description: 'Click on a node or edge to select it first.', variant: 'destructive'});
       return;
     }
-    
     if ('position' in selectedElement) { // Node
       setNodes((nds) => nds.filter((node) => node.id !== selectedElement.id));
       setEdges((eds) => eds.filter((edge) => edge.source !== selectedElement.id && edge.target !== selectedElement.id));
@@ -319,30 +309,24 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setEdges((eds) => eds.filter((edge) => edge.id !== selectedElement.id));
     }
     setSelectedElement(null);
-    clearVisualPath();
-    setSimulationResults(null);
-    toast({ title: 'Element Deleted', description: 'Network updated. Run simulation to see new paths.' });
-  }, [selectedElement, setNodes, setEdges, toast, clearVisualPath, setSimulationResults]);
+    handleSimulationStateChange('Element Deleted', 'Network updated. Run simulation to see new paths.');
+  }, [selectedElement, setNodes, setEdges, toast, handleSimulationStateChange]);
 
   const generateNetworkFromMatrix = useCallback((matrixStr: string, numNodes: number) => {
     if (numNodes <= 0) {
       toast({ title: 'Invalid Matrix Size', description: 'Number of nodes must be positive.', variant: 'destructive' });
       return;
     }
-
     const rows = matrixStr.trim().split('\n');
     if (rows.length !== numNodes) {
       toast({ title: 'Matrix Error', description: `Matrix must have ${numNodes} rows. Found ${rows.length}.`, variant: 'destructive' });
       return;
     }
-
     const newGeneratedNodes: Node<NodeData>[] = [];
     const newGeneratedEdges: Edge<EdgeData>[] = [];
     const adjMatrix: number[][] = [];
-
     const spacing = 180;
     const nodesPerRow = Math.max(1, Math.ceil(Math.sqrt(numNodes)));
-
 
     for (let i = 0; i < numNodes; i++) {
       const cols = rows[i].split(',').map(val => val.trim());
@@ -360,7 +344,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         numericRow.push(val);
       }
       adjMatrix.push(numericRow);
-
       const nodeX = (i % nodesPerRow) * spacing + 50;
       const nodeY = Math.floor(i / nodesPerRow) * spacing + 50;
       const nodeId = `m_node_${i}`;
@@ -379,7 +362,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         },
       });
     }
-
     for (let i = 0; i < numNodes; i++) {
       for (let j = 0; j < numNodes; j++) {
         if (adjMatrix[i][j] === 1) {
@@ -398,19 +380,14 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
-
     setNodes(newGeneratedNodes);
     setEdges(newGeneratedEdges);
     setSelectedElement(null);
-    clearVisualPath();
-    setSimulationResults(null);
-    toast({ title: 'Network Generated', description: `${numNodes} nodes and ${newGeneratedEdges.length} edges created. Run simulation to see paths.` });
-  }, [setNodes, setEdges, setSelectedElement, clearVisualPath, toast, setSimulationResults]);
+    handleSimulationStateChange('Network Generated', `${numNodes} nodes and ${newGeneratedEdges.length} edges created. Run simulation.`);
+  }, [setNodes, setEdges, setSelectedElement, toast, handleSimulationStateChange]);
 
 
   const runSimulation = useCallback(() => {
-    const currentNodes = nodes;
-    const currentEdges = edges;
     const { sourceNode: sourceId, targetNode: targetId, algorithm, weights } = simulationParams;
 
      if (!sourceId || !targetId) {
@@ -420,8 +397,8 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
        return;
      }
 
-     const sourceNodeDetails = currentNodes.find(n => n.id === sourceId);
-     const targetNodeDetails = currentNodes.find(n => n.id === targetId);
+     const sourceNodeDetails = nodes.find(n => n.id === sourceId);
+     const targetNodeDetails = nodes.find(n => n.id === targetId);
 
      if (sourceNodeDetails?.data.isFailed) {
         toast({ title: 'Simulation Error', description: 'Source node has failed. Cannot run simulation.', variant: 'destructive' });
@@ -436,27 +413,22 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
      }
 
-      if (sourceId === targetId && currentNodes.filter(n=>!n.data.isFailed).length >= 1) {
+    if (sourceId === targetId && nodes.filter(n=>!n.data.isFailed).length >= 1) {
         const selfPathResult: SimulationResult = {
-            algorithm: algorithm === 'compare' ? 'adaptive' : algorithm,
+            algorithm: algorithm === 'compare' ? 'adaptive' : algorithm, // Default to adaptive for display in compare
             path: [sourceId],
-            metrics: {
-                energyConsumption: 0,
-                averageLatency: 0,
-                deliveryRatio: 1,
-                networkLifetime: 500,
-            }
+            metrics: { energyConsumption: 0, averageLatency: 0, deliveryRatio: 1, networkLifetime: 500 }
         };
         setSimulationResults(algorithm === 'compare' ? [
             {...selfPathResult, algorithm: 'dijkstra'},
             {...selfPathResult, algorithm: 'bellman-ford'},
             {...selfPathResult, algorithm: 'adaptive'},
         ] : [selfPathResult]);
-        clearVisualPath();
+        clearVisualPath(); // Clear any previous path highlights
+        // No edges to highlight for a self-path
         toast({ title: 'Simulation Complete', description: `Source and target are the same node: ${sourceNodeDetails?.data.label || sourceId}.` });
         return;
-      }
-
+    }
 
     if (algorithm === 'adaptive' || algorithm === 'compare') {
         const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
@@ -475,43 +447,49 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const results: SimulationResult[] = algorithmsToRun.map(algo => {
         let currentMockPath: string[] = [];
 
-        const sourceNodeData = currentNodes.find(n => n.id === sourceId)?.data;
+        // Ensure we use the current state of nodes and edges
+        const currentNodes = nodes;
+        const currentEdges = edges;
 
         if (algo === 'adaptive') {
             let bestAdaptivePath: string[] = [];
             let minCost = Infinity;
 
+            // 1. Check direct path S -> T
             const directEdge = currentEdges.find(edge =>
-                !currentNodes.find(n=>n.id === edge.source)?.data.isFailed &&
-                !currentNodes.find(n=>n.id === edge.target)?.data.isFailed &&
-                ((edge.source === sourceId && edge.target === targetId) || (edge.source === targetId && edge.target === sourceId))
+                edge.source === sourceId && edge.target === targetId &&
+                !currentNodes.find(n => n.id === edge.source)?.data.isFailed &&
+                !currentNodes.find(n => n.id === edge.target)?.data.isFailed
             );
 
-            if (directEdge?.data && sourceNodeData) {
-                const directPathCost = (directEdge.data.latency * weights.alpha);
-                minCost = directPathCost;
-                bestAdaptivePath = [sourceId, targetId];
+            if (directEdge?.data) {
+                const sourceNodeData = currentNodes.find(n => n.id === sourceId)?.data;
+                if (sourceNodeData) { // Needed for perceived values, though not directly used for 1-hop cost here
+                     minCost = (directEdge.data.latency * weights.alpha); // Simplified cost for direct
+                     bestAdaptivePath = [sourceId, targetId];
+                }
             }
 
+            // 2. Check 2-hop paths S -> I -> T
             const intermediateNodeCandidates = currentNodes.filter(node =>
                 node.id !== sourceId && node.id !== targetId && !node.data.isFailed
             );
 
             for (const intermediateNode of intermediateNodeCandidates) {
                 const edge1 = currentEdges.find(e =>
-                    !currentNodes.find(n=>n.id === e.source)?.data.isFailed &&
-                    !currentNodes.find(n=>n.id === e.target)?.data.isFailed &&
-                    ((e.source === sourceId && e.target === intermediateNode.id) || (e.source === intermediateNode.id && e.target === sourceId))
+                    e.source === sourceId && e.target === intermediateNode.id &&
+                    !currentNodes.find(n => n.id === e.source)?.data.isFailed &&
+                    !currentNodes.find(n => n.id === e.target)?.data.isFailed
                 );
                 const edge2 = currentEdges.find(e =>
-                     !currentNodes.find(n=>n.id === e.source)?.data.isFailed &&
-                     !currentNodes.find(n=>n.id === e.target)?.data.isFailed &&
-                    ((e.source === intermediateNode.id && e.target === targetId) || (e.source === targetId && e.target === intermediateNode.id))
+                    e.source === intermediateNode.id && e.target === targetId &&
+                    !currentNodes.find(n => n.id === e.source)?.data.isFailed &&
+                    !currentNodes.find(n => n.id === e.target)?.data.isFailed
                 );
 
                 if (edge1?.data && edge2?.data && intermediateNode?.data) {
-                    const perceivedBattery = Math.max(0, Math.min(100, intermediateNode.data.battery - Math.floor(Math.random() * 5)));
-                    const perceivedQueueSize = Math.max(0, intermediateNode.data.queueSize + Math.floor(Math.random() * 6) - 3);
+                    const perceivedBattery = Math.max(0, Math.min(100, intermediateNode.data.battery - Math.floor(Math.random() * 5) + 2)); // Slight random variance
+                    const perceivedQueueSize = Math.max(0, intermediateNode.data.queueSize + Math.floor(Math.random() * 6) - 3); // Slight random variance
 
                     const pathLatency = (edge1.data.latency + edge2.data.latency);
                     const latencyCost = weights.alpha * pathLatency;
@@ -527,32 +505,34 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 }
             }
             currentMockPath = bestAdaptivePath;
-            if (currentMockPath.length === 0 && sourceId !== targetId) {
+            if (currentMockPath.length === 0 && sourceId !== targetId) { // Fallback to BFS if no 1 or 2-hop path found
                 currentMockPath = findPathBFS(sourceId, targetId, currentNodes, currentEdges);
             }
-        } else { // Dijkstra, Bellman-Ford
+        } else { // Dijkstra, Bellman-Ford (simplified mock)
+            // 1. Check direct path S -> T
             const directEdge = currentEdges.find(edge =>
-                 !currentNodes.find(n=>n.id === edge.source)?.data.isFailed &&
-                 !currentNodes.find(n=>n.id === edge.target)?.data.isFailed &&
-                ((edge.source === sourceId && edge.target === targetId) || (edge.source === targetId && edge.target === sourceId))
+                edge.source === sourceId && edge.target === targetId &&
+                !currentNodes.find(n => n.id === edge.source)?.data.isFailed &&
+                !currentNodes.find(n => n.id === edge.target)?.data.isFailed
             );
             if (directEdge) {
                  currentMockPath = [sourceId, targetId];
             } else {
+                // 2. Check 2-hop paths S -> I -> T
                 let foundTwoHop = false;
                 const intermediateNodeCandidates = currentNodes.filter(node =>
                     node.id !== sourceId && node.id !== targetId && !node.data.isFailed
                 );
                 for (const intermediateNode of intermediateNodeCandidates) {
                     const edge1Exists = currentEdges.some(edge =>
-                        !currentNodes.find(n=>n.id === edge.source)?.data.isFailed &&
-                        !currentNodes.find(n=>n.id === edge.target)?.data.isFailed &&
-                        ((edge.source === sourceId && edge.target === intermediateNode.id) || (edge.source === intermediateNode.id && edge.target === sourceId))
+                        edge.source === sourceId && edge.target === intermediateNode.id &&
+                        !currentNodes.find(n => n.id === edge.source)?.data.isFailed &&
+                        !currentNodes.find(n => n.id === edge.target)?.data.isFailed
                     );
-                    const edge2Exists = currentEdges.some(edge => // Corrected variable 'edge' here
-                        !currentNodes.find(n=>n.id === edge.source)?.data.isFailed &&
-                        !currentNodes.find(n=>n.id === edge.target)?.data.isFailed &&
-                        ((edge.source === intermediateNode.id && edge.target === targetId) || (edge.source === targetId && edge.target === intermediateNode.id))
+                    const edge2Exists = currentEdges.some(edge =>
+                        edge.source === intermediateNode.id && edge.target === targetId &&
+                        !currentNodes.find(n => n.id === edge.source)?.data.isFailed &&
+                        !currentNodes.find(n => n.id === edge.target)?.data.isFailed
                     );
                     if (edge1Exists && edge2Exists) {
                         currentMockPath = [sourceId, intermediateNode.id, targetId];
@@ -560,7 +540,7 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
                         break;
                     }
                 }
-                if (!foundTwoHop && sourceId !== targetId) {
+                if (!foundTwoHop && sourceId !== targetId) { // Fallback to BFS
                     currentMockPath = findPathBFS(sourceId, targetId, currentNodes, currentEdges);
                 }
             }
@@ -579,13 +559,12 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
              const pathLatencySum = currentMockPath.length > 1 ?
                 currentMockPath.slice(0, -1).reduce((acc, curr, idx) => {
                     const nextNodeId = currentMockPath[idx+1];
-                    const edge = currentEdges.find(e => (e.source === curr && e.target === nextNodeId) || (e.source === nextNodeId && e.target === curr));
-                    return acc + (edge?.data?.latency || 30);
+                    const edge = currentEdges.find(e => e.source === curr && e.target === nextNodeId);
+                    return acc + (edge?.data?.latency || 30); // Use a default if edge not found (should not happen with BFS)
                 }, 0)
                 : 0;
-
              const avgPathLatency = pathLatencySum / Math.max(1, currentMockPath.length - 1);
-             latencyFactor = Math.max(0.1, avgPathLatency / 20);
+             latencyFactor = Math.max(0.1, avgPathLatency / 20); // Normalize based on avg latency
              energyFactor = 1.0 - (weights.beta * 0.2) + (weights.gamma * 0.1);
              deliveryFactor = Math.min(1.0, 0.9 + (weights.alpha * 0.05) - (weights.gamma * 0.1));
              lifetimeFactor = 0.85 + (weights.beta * 0.25);
@@ -595,7 +574,6 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const baseEnergyPerHop = 10;
         const baseLatencyPerHop = 15;
         const noPathExists = currentMockPath.length === 0 && sourceId !== targetId;
-
 
         return {
             algorithm: algo,
@@ -619,13 +597,14 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
         for (let i = 0; i < resultForDisplay.path.length - 1; i++) {
             const pathSource = resultForDisplay.path[i];
             const pathTarget = resultForDisplay.path[i+1];
-            const edge = edges.find(e => (e.source === pathSource && e.target === pathTarget) || (e.source === pathTarget && e.target === pathSource));
+            // For highlighting, we find the edge regardless of its original direction if it connects the two path nodes
+            // However, the path itself was determined by directed logic.
+            const edge = edges.find(e => (e.source === pathSource && e.target === pathTarget)); // Strict direction for finding the edge to highlight
             if (edge) {
                 pathEdgesToHighlight.add(edge.id);
             }
         }
      }
-
 
     setEdges(eds => eds.map(e => ({
         ...e,
@@ -637,15 +616,16 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     })));
 
     const pathFoundForDisplay = resultForDisplay && resultForDisplay.path.length > 0;
+    const displayedAlgoName = resultForDisplay?.algorithm || chosenAlgorithmForDisplay;
 
     toast({
       title: 'Simulation Complete',
       description: pathFoundForDisplay
-        ? `Results generated for ${algorithm === 'compare' ? 'all algorithms' : algorithm}. Displaying path for ${chosenAlgorithmForDisplay}.`
-        : `No path found for ${chosenAlgorithmForDisplay} from ${sourceNodeDetails?.data.label || sourceId} to ${targetNodeDetails?.data.label || targetId}.`,
+        ? `Results generated. Displaying path for ${displayedAlgoName}.`
+        : `No path found for ${displayedAlgoName} from ${sourceNodeDetails?.data.label || sourceId} to ${targetNodeDetails?.data.label || targetId}.`,
        variant: pathFoundForDisplay ? 'default' : 'destructive'
     });
-  }, [nodes, edges, simulationParams, setEdges, toast, setSimulationResults, clearVisualPath, setNodes, setSelectedElement]);
+  }, [nodes, edges, simulationParams, setEdges, toast, setSimulationResults, clearVisualPath]);
 
 
   return (
@@ -688,3 +668,5 @@ export const useNetwork = (): NetworkContextType => {
   }
   return context;
 };
+
+    
